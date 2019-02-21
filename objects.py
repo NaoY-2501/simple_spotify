@@ -1,3 +1,6 @@
+from consts import RESULT_TYPES
+
+
 class Artist:
     def __init__(self, artist_json):
         self.external_urls = artist_json['external_urls']
@@ -12,6 +15,18 @@ class Artist:
 
     def __str__(self):
         return self.name
+
+    @classmethod
+    def raw_to_object(cls, raw):
+        return cls(raw)
+
+    def get_images(self):
+        """
+        Get image of artist as generator.
+        :return: generator of Image object
+        """
+        for image in self.images:
+            yield image
 
 
 class Followers:
@@ -29,3 +44,34 @@ class Image:
 
     def __str__(self):
         return self.url
+
+
+class SearchResult:
+    def __init__(self, q, search_type, raw):
+        self.q = q
+        self.search_type = search_type
+        self.albums = SearchResultDetail(raw[RESULT_TYPES['album']]) if 'album' in search_type else None
+        self.artists = SearchResultDetail(raw[RESULT_TYPES['artist']]) if 'artist' in search_type else None
+        self.playlists = SearchResultDetail(raw[RESULT_TYPES['playlist']]) if 'playlist' in search_type else None
+        self.tracks = SearchResultDetail(raw[RESULT_TYPES['track']]) if 'track' in search_type else None
+
+    def __str__(self):
+        return 'Query:{q} Result:{search_type}'.format(q=self.q, search_type=self.search_type)
+
+
+class SearchResultDetail:
+    def __init__(self, result_json):
+        self.href = result_json['href']
+        self.items = result_json['items']
+        self.limit = result_json['limit']
+        self.offset = result_json['offset']
+        self.previous = result_json['previous']
+        self.next = result_json['next']
+        self.total = result_json['total']
+
+    def __str__(self):
+        return self.href
+
+    def get_item(self):
+        for item in self.items:
+            yield item
