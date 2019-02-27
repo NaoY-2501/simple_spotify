@@ -26,14 +26,14 @@ class SpotifyBase:
             base64string=base64string.decode('utf-8')
         ).replace('\n', '')}  # trailing \n in base64string
 
-        bodys = {'grant_type': 'client_credentials'}
+        body = {'grant_type': 'client_credentials'}
 
-        data = urllib.parse.urlencode(bodys).encode('ascii')
+        data = urllib.parse.urlencode(body).encode('ascii')
         req = urllib.request.Request(endpoint, data, headers)
         try:
             with urllib.request.urlopen(req) as res:
                 # keys:access_token, token_type, Bearer, expires_in, scope
-                json_res = json.loads(res.read().decode('utf-8'))
+                json_res = self.get_json_res(res)
             return json_res
         except urllib.error.HTTPError as e:
             raise SpotifyHTTPError(e.reason, e.code)
@@ -60,9 +60,10 @@ class Spotify(SpotifyBase):
             with urllib.request.urlopen(req) as res:
                 json_res = self.get_json_res(res)
                 if raw:
-                    return json_res
+                    result = json_res
                 else:
-                    return Artist(json_res)
+                    result = Artist(json_res)
+                return result
         except urllib.error.HTTPError as e:
             raise SpotifyHTTPError(e.reason, e.code)
 
@@ -71,7 +72,7 @@ class Spotify(SpotifyBase):
         Get information about 20 related artists to a given artist.
         :param artist_id:
         :param raw: If you want to get response as json format, specify to True.
-        :return: List of Artist objects
+        :return: List of Artist objects or json format dict when raw is True.
         """
         endpoint = 'https://api.spotify.com/v1/artists/{artist_id}/related-artists'.format(
             artist_id=artist_id
@@ -85,13 +86,13 @@ class Spotify(SpotifyBase):
             raise SpotifyHTTPError(e.reason, e.code)
 
         if raw:
-            return json_res
+            results = json_res
         else:
             converter = Artist.raw_to_object
             results = []
             for each in json_res['artists']:
                 results.append(converter(each))
-            return results
+        return results
 
     def search(self, q, search_type, market=None, limit=20, offset=0, raw=False):
         """
@@ -102,7 +103,7 @@ class Spotify(SpotifyBase):
         :param limit: maximum number of results to return. Default 20. min 1, max 50.
         :param offset: The index of the first result to return. Default 0. max 10,000.
         :param raw: If you want to get response as json format, specify to True.
-        :return: SearchResult objects
+        :return: SearchResult objects or json format dict when raw is True.
         """
         endpoint = 'https://api.spotify.com/v1/search'
 
@@ -147,18 +148,18 @@ class Spotify(SpotifyBase):
         except urllib.error.HTTPError as e:
             raise SpotifyHTTPError(e.reason, e.code)
 
-        search_results = SearchResult(q, search_type, json_res)
-
         if raw:
-            return json_res
-        return search_results
+            results = json_res
+        else:
+            results = SearchResult(q, search_type, json_res)
+        return results
 
     def paging(self, href, raw=False):
         """
         paging for search result
         :param href: link to prev/next page
         :param raw: If you want to get response as json format, specify to True.
-        :return: SearchResultDetail object
+        :return: SearchResultDetail object or json format dict when raw is True.
         """
         if href:
             req = urllib.request.Request(href, headers=self.header_params)
