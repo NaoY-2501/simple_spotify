@@ -50,15 +50,37 @@ class SearchResult:
     def __init__(self, q, search_type, raw):
         self.q = q
         self.search_type = search_type
-        self.albums = SearchResultDetail(raw[RESULT_TYPES['album']]) if 'album' in search_type else None
-        self.artists = SearchResultDetail(raw[RESULT_TYPES['artist']]) if 'artist' in search_type else None
-        self.playlists = SearchResultDetail(raw[RESULT_TYPES['playlist']]) if 'playlist' in search_type else None
-        self.tracks = SearchResultDetail(raw[RESULT_TYPES['track']]) if 'track' in search_type else None
+        self.raw = raw
 
     def __str__(self):
         return 'Query:{q} Result:{search_type}'.format(q=self.q, search_type=self.search_type)
 
+    @property
+    def albums(self):
+        if 'album' in self.search_type:
+            return SearchResultDetail(self.raw[RESULT_TYPES['album']])
+        return None
 
+    @property
+    def artists(self):
+        if 'artist' in self.search_type:
+            return SearchResultDetail(self.raw[RESULT_TYPES['artist']])
+        return None
+
+    @property
+    def playlists(self):
+        if 'playlist' in self.search_type:
+            return SearchResultDetail(self.raw[RESULT_TYPES['playlist']])
+        return None
+
+    @property
+    def tracks(self):
+        if 'track' in self.search_type:
+            return SearchResultDetail(self.raw[RESULT_TYPES['track']])
+        return None
+
+
+# TODO: add next() and previous() as property.
 class SearchResultDetail:
     def __init__(self, result_json):
         self.href = result_json['href']
