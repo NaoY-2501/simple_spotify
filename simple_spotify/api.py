@@ -5,7 +5,7 @@ import urllib.parse
 import urllib.request
 
 from .consts import SEARCH_TYPES
-from .errors import SpotifyHTTPError, SpotifySearchTypeError
+from .errors import SpotifyHTTPError, SpotifySearchError
 from .models import Artist, SearchResult, SearchResultDetail
 
 
@@ -86,11 +86,11 @@ class Spotify(SpotifyBase):
             results.append(converter(each))
         return results
 
-    def search(self, q, search_type, market=None, limit=20, offset=0):
+    def search(self, q='', search_type=SEARCH_TYPES, market=None, limit=20, offset=0):
         """
         Get information about artists, albums, tracks, playlist with match a keyword string.
         :param q: search keyword
-        :param search_type: list of search type(album, artist, playlist, track)
+        :param search_type: list of search type. Default is [album, artist, playlist, track].
         :param market: ISO 3166-1 alpha-2 country code
         :param limit: maximum number of results to return. Default 20. min 1, max 50.
         :param offset: The index of the first result to return. Default 0. max 10,000.
@@ -99,26 +99,35 @@ class Spotify(SpotifyBase):
         """
         endpoint = 'https://api.spotify.com/v1/search'
 
+        # query validation
+        if not isinstance(q, str):
+            raise SpotifySearchError('Query must be str.')
+        if not q:
+            raise SpotifySearchError('Query is empty.')
+
+        # convert tuple to list.
+        if isinstance(search_type, tuple):
+            search_type = list(search_type)
         # type validation
         if not isinstance(search_type, list):
-            raise TypeError('search_type must be list.')
+            raise SpotifySearchError('search_type must be list.')
 
         for t in search_type:
             try:
                 if t.lower() not in SEARCH_TYPES:
-                    raise SpotifySearchTypeError(t)
+                    raise SpotifySearchError('{} is invalid search type.'.format(t))
             except AttributeError:
                 raise AttributeError('Invalid type object in search_type. search_type must be list of string')
 
         # limit validation
         if not isinstance(limit, int):
-            raise TypeError('limit must be int.')
+            raise SpotifySearchError('limit must be int.')
         if limit > 50:
             limit = 50
 
         # offset validation
         if not isinstance(offset, int):
-            raise TypeError('offset must be int.')
+            raise SpotifySearchError('offset must be int.')
         if offset > 10000:
             offset = 10000
 
