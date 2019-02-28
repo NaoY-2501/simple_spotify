@@ -1,9 +1,16 @@
 from .consts import RESULT_TYPES
 
 
-class Artist:
-    def __init__(self, artist_json):
-        self.raw = artist_json
+class ObjectBase:
+    def __init__(self, raw_json):
+        self.raw = raw_json
+
+    @classmethod
+    def raw_to_object(cls, raw):
+        return cls(raw)
+
+
+class Artist(ObjectBase):
 
     def __str__(self):
         return self.name
@@ -67,10 +74,6 @@ class Artist:
         if self.raw['popularity']:
             return self.raw['popularity']
         return None
-
-    @classmethod
-    def raw_to_object(cls, raw):
-        return cls(raw)
 
 
 class Image:
