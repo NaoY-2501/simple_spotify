@@ -3,39 +3,74 @@ from .consts import RESULT_TYPES
 
 class Artist:
     def __init__(self, artist_json):
-        self.external_urls = artist_json['external_urls']
-        self.genres = artist_json['genres']
-        self.href = artist_json['href']
-        self.artist_id = artist_json['id']
-        self.name = artist_json['name']
-        self.popularity = artist_json['popularity']
-        self.uri = artist_json['uri']
         self.raw = artist_json
 
     def __str__(self):
         return self.name
 
-    @classmethod
-    def raw_to_object(cls, raw):
-        return cls(raw)
+    @property
+    def external_urls(self):
+        return self.raw['external_urls']
+
+    @property
+    def href(self):
+        return self.raw['href']
+
+    @property
+    def artist_id(self):
+        return self.raw['id']
+
+    @property
+    def name(self):
+        return self.raw['name']
+
+    @property
+    def obj_type(self):
+        return self.raw['type']
+
+    @property
+    def uri(self):
+        return self.raw['uri']
 
     @property
     def followers(self):
-        followers = self.raw['followers']
-        return followers['total']
+        if self.raw['followers']:
+            followers = self.raw['followers']
+            return followers['total']
+        return None
 
     @property
     def followers_href(self):
-        # href is always set to null as the Spotify Web API does not support it at the moment.
-        followers = self.raw['followers']
-        return followers['href'] if followers['href'] != 'null' else None
+        if self.raw['followers']:
+            # href is always set to null as the Spotify Web API does not support it at the moment.
+            followers = self.raw['followers']
+            return followers['href'] if followers['href'] != 'null' else None
+        return None
+
+    @property
+    def genres(self):
+        if self.raw['genres']:
+            return self.raw['genres']
+        return None
 
     @property
     def images(self):
         images = []
-        for image in self.raw['images']:
-            images.append(Image(image))
-        return images
+        if self.raw['images']:
+            for image in self.raw['images']:
+                images.append(Image(image))
+            return images
+        return None
+
+    @property
+    def popularity(self):
+        if self.raw['popularity']:
+            return self.raw['popularity']
+        return None
+
+    @classmethod
+    def raw_to_object(cls, raw):
+        return cls(raw)
 
 
 class Image:
