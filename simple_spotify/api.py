@@ -94,7 +94,6 @@ class Spotify(SpotifyBase):
         :param market: ISO 3166-1 alpha-2 country code
         :param limit: maximum number of results to return. Default 20. min 1, max 50.
         :param offset: The index of the first result to return. Default 0. max 10,000.
-        :param raw: If you want to get response as json format, specify to True.
         :return: SearchResult objects or json format dict when raw is True.
         """
         endpoint = 'https://api.spotify.com/v1/search'
