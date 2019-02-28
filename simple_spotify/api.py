@@ -44,12 +44,11 @@ class SpotifyBase:
 
 
 class Spotify(SpotifyBase):
-    def artist(self, artist_id, raw=False):
+    def artist(self, artist_id):
         """
         Get artist information.
         Endpoint:GET https://api.spotify.com/v1/artists/{id}
         :param artist_id:
-        :param raw: If you want to get response as json format, specify to True.
         :return: Artist object
         """
         endpoint = 'https://api.spotify.com/v1/artists/{artist_id}'.format(
@@ -59,19 +58,15 @@ class Spotify(SpotifyBase):
         try:
             with urllib.request.urlopen(req) as res:
                 json_res = self.get_json_res(res)
-                if raw:
-                    result = json_res
-                else:
-                    result = Artist(json_res)
+                result = Artist(json_res)
                 return result
         except urllib.error.HTTPError as e:
             raise SpotifyHTTPError(e.reason, e.code)
 
-    def related_artists(self, artist_id, raw=False):
+    def related_artists(self, artist_id):
         """
         Get information about 20 related artists to a given artist.
         :param artist_id:
-        :param raw: If you want to get response as json format, specify to True.
         :return: List of Artist objects or json format dict when raw is True.
         """
         endpoint = 'https://api.spotify.com/v1/artists/{artist_id}/related-artists'.format(
@@ -85,16 +80,13 @@ class Spotify(SpotifyBase):
         except urllib.error.HTTPError as e:
             raise SpotifyHTTPError(e.reason, e.code)
 
-        if raw:
-            results = json_res
-        else:
-            converter = Artist.raw_to_object
-            results = []
-            for each in json_res['artists']:
-                results.append(converter(each))
+        converter = Artist.raw_to_object
+        results = []
+        for each in json_res['artists']:
+            results.append(converter(each))
         return results
 
-    def search(self, q, search_type, market=None, limit=20, offset=0, raw=False):
+    def search(self, q, search_type, market=None, limit=20, offset=0):
         """
         Get information about artists, albums, tracks, playlist with match a keyword string.
         :param q: search keyword
@@ -108,6 +100,9 @@ class Spotify(SpotifyBase):
         endpoint = 'https://api.spotify.com/v1/search'
 
         # type validation
+        if not isinstance(search_type, list):
+            raise TypeError('search_type must be list.')
+
         for t in search_type:
             try:
                 if t.lower() not in SEARCH_TYPES:
@@ -148,17 +143,13 @@ class Spotify(SpotifyBase):
         except urllib.error.HTTPError as e:
             raise SpotifyHTTPError(e.reason, e.code)
 
-        if raw:
-            results = json_res
-        else:
-            results = SearchResult(q, search_type, json_res)
+        results = SearchResult(q, search_type, json_res)
         return results
 
-    def paging(self, href, raw=False):
+    def paging(self, href):
         """
         paging for search result
         :param href: link to prev/next page
-        :param raw: If you want to get response as json format, specify to True.
         :return: SearchResultDetail object or json format dict when raw is True.
         """
         if href:
@@ -170,8 +161,6 @@ class Spotify(SpotifyBase):
             except urllib.error.HTTPError as e:
                 raise SpotifyHTTPError(e.reason, e.code)
 
-            if raw:
-                return json_res
             key = list(json_res.keys())[0]
             return SearchResultDetail(json_res[key])
         return None
