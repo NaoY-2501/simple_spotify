@@ -6,7 +6,7 @@ import urllib.request
 
 from .consts import SEARCH_TYPES
 from .errors import SpotifyHTTPError, SpotifySearchError
-from .models import Artist, SearchResult, SearchResultDetail
+from .models import Album, Artist, SearchResult, SearchResultDetail
 
 
 class SpotifyBase:
@@ -44,6 +44,26 @@ class SpotifyBase:
 
 
 class Spotify(SpotifyBase):
+
+    def album(self, album_id):
+        """
+        Get album information
+        Endpoint: GET https://api.spotify.com/v1/albums/{id}
+        :param album_id:
+        :return:Album object
+        """
+        endpoint = 'https://api.spotify.com/v1/albums/{id}'.format(
+            id=album_id
+        )
+        req = urllib.request.Request(endpoint, headers=self.header_params)
+        try:
+            with urllib.request.urlopen(req) as res:
+                json_res = self.get_json_res(res)
+                result = Album(json_res)
+                return result
+        except urllib.error.HTTPError as e:
+            raise SpotifyHTTPError(e.reason, e.code)
+
     def artist(self, artist_id):
         """
         Get artist information.
@@ -51,8 +71,8 @@ class Spotify(SpotifyBase):
         :param artist_id:
         :return: Artist object
         """
-        endpoint = 'https://api.spotify.com/v1/artists/{artist_id}'.format(
-            artist_id=artist_id
+        endpoint = 'https://api.spotify.com/v1/artists/{id}'.format(
+            id=artist_id
         )
         req = urllib.request.Request(endpoint, headers=self.header_params)
         try:
@@ -85,6 +105,25 @@ class Spotify(SpotifyBase):
         for each in json_res['artists']:
             results.append(converter(each))
         return results
+
+    def paging(self, href):
+        """
+        paging for search result
+        :param href: link to prev/next page
+        :return: SearchResultDetail object or json format dict when raw is True.
+        """
+        if href:
+            req = urllib.request.Request(href, headers=self.header_params)
+
+            try:
+                with urllib.request.urlopen(req) as res:
+                    json_res = self.get_json_res(res)
+            except urllib.error.HTTPError as e:
+                raise SpotifyHTTPError(e.reason, e.code)
+
+            key = list(json_res.keys())[0]
+            return SearchResultDetail(json_res[key])
+        return None
 
     def search(self, q='', search_type=SEARCH_TYPES, market=None, limit=20, offset=0):
         """
@@ -154,21 +193,4 @@ class Spotify(SpotifyBase):
         results = SearchResult(q, search_type, json_res)
         return results
 
-    def paging(self, href):
-        """
-        paging for search result
-        :param href: link to prev/next page
-        :return: SearchResultDetail object or json format dict when raw is True.
-        """
-        if href:
-            req = urllib.request.Request(href, headers=self.header_params)
 
-            try:
-                with urllib.request.urlopen(req) as res:
-                    json_res = self.get_json_res(res)
-            except urllib.error.HTTPError as e:
-                raise SpotifyHTTPError(e.reason, e.code)
-
-            key = list(json_res.keys())[0]
-            return SearchResultDetail(json_res[key])
-        return None
