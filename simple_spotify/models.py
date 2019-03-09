@@ -186,6 +186,99 @@ class SimplifiedTrack(ObjectBase):
             artists.append(converter(artist))
         return artists
 
+    @property
+    def available_markets(self):
+        return self.raw['available_markets']
+
+    @property
+    def disc_number(self):
+        return self.raw['disc_number']
+
+    @property
+    def duration_ms(self):
+        return self.raw['duration_ms']
+
+
+    @property
+    def explicit(self):
+        return self.raw['explicit']
+
+    @property
+    def external_urls(self):
+        return self.raw['external_urls']
+
+    @property
+    def href(self):
+        return self.raw['href']
+
+    @property
+    def track_id(self):
+        return self.raw['id']
+
+    @property
+    def is_playable(self):
+        return self.raw['is_playable']
+
+    @property
+    def linked_from(self):
+        return TrackLink(self.raw['linked_from'])
+
+    @property
+    def restrictions(self):
+        return Restrictions(self.raw['restrictions'])
+
+    @property
+    def name(self):
+        return self.raw['name']
+
+    @property
+    def preview_url(self):
+        return self.raw['preview_url']
+
+    @property
+    def track_number(self):
+        return self.raw['track_number']
+
+    @property
+    def obj_type(self):
+        return self.raw['type']
+
+    @property
+    def uri(self):
+        return self.raw['uri']
+
+    @property
+    def is_local(self):
+        return self.raw['is_local']
+
+
+class Track(SimplifiedTrack):
+
+    @property
+    def album(self):
+        return SimplifiedAlbum(self.raw['album'])
+
+    @property
+    def external_ids(self):
+        return self.raw['external_ids']
+
+    @property
+    def popularity(self):
+        return self.raw['popularity']
+
+
+class TrackLink:
+    def __init__(self, raw_track_link):
+        self.external_url = raw_track_link.get('external_url')
+        self.href = raw_track_link.get('href')
+        self.link_id = raw_track_link.get('id')
+        self.obj_type = raw_track_link.get('type')
+        self.uri = raw_track_link.get('uri')
+
+
+class Restrictions:
+    def __init__(self, raw_restrictions):
+        self.raw = raw_restrictions.get('restrictions').get('reason')
 
 
 class CopyRight:
