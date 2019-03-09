@@ -96,7 +96,7 @@ class Album(SimplifiedAlbum):
 
     @property
     def external_urls(self):
-        return self.raw['external_urls']
+        return ExternalURL(self.raw['external_urls'])
 
     @property
     def label(self):
@@ -120,7 +120,7 @@ class SimplifiedArtist(ObjectBase):
 
     @property
     def external_urls(self):
-        return self.raw['external_urls']
+        return ExternalURL(self.raw['external_urls'])
 
     @property
     def href(self):
@@ -198,14 +198,13 @@ class SimplifiedTrack(ObjectBase):
     def duration_ms(self):
         return self.raw['duration_ms']
 
-
     @property
     def explicit(self):
         return self.raw['explicit']
 
     @property
     def external_urls(self):
-        return self.raw['external_urls']
+        return ExternalURL(self.raw['external_urls'])
 
     @property
     def href(self):
@@ -221,11 +220,17 @@ class SimplifiedTrack(ObjectBase):
 
     @property
     def linked_from(self):
-        return TrackLink(self.raw['linked_from'])
+        value = self.raw.get('linked_from')
+        if value:
+            return TrackLink(value)
+        return value
 
     @property
     def restrictions(self):
-        return Restrictions(self.raw['restrictions'])
+        value = self.raw.get('restricitons')
+        if value:
+            return Restrictions(value)
+        return value
 
     @property
     def name(self):
@@ -260,25 +265,11 @@ class Track(SimplifiedTrack):
 
     @property
     def external_ids(self):
-        return self.raw['external_ids']
+        return ExternalID(self.raw['external_ids'])
 
     @property
     def popularity(self):
         return self.raw['popularity']
-
-
-class TrackLink:
-    def __init__(self, raw_track_link):
-        self.external_url = raw_track_link.get('external_url')
-        self.href = raw_track_link.get('href')
-        self.link_id = raw_track_link.get('id')
-        self.obj_type = raw_track_link.get('type')
-        self.uri = raw_track_link.get('uri')
-
-
-class Restrictions:
-    def __init__(self, raw_restrictions):
-        self.raw = raw_restrictions.get('restrictions').get('reason')
 
 
 class CopyRight:
@@ -289,6 +280,26 @@ class CopyRight:
     @classmethod
     def convert_to_copyright(cls, raw_copyright):
         return cls(raw_copyright)
+
+
+class ExternalID:
+    def __init__(self, raw_external_id):
+        self.identifier_type = list(raw_external_id.keys())[0]
+        self.identifier = list(raw_external_id.values())[0]
+
+    def __str__(self):
+        return '{type}:{id}'.format(
+            type=self.identifier_type,
+            id=self.identifier
+        )
+
+
+class ExternalURL:
+    def __init__(self, raw_external_url):
+        self.url = raw_external_url['spotify']
+
+    def __str__(self):
+        return self.url
 
 
 class Image:
@@ -303,6 +314,20 @@ class Image:
     @classmethod
     def convert_to_image(cls, raw_json):
         return cls(raw_json)
+
+
+class Restrictions:
+    def __init__(self, raw_restrictions):
+        self.raw = raw_restrictions['restrictions']['reason']
+
+
+class TrackLink:
+    def __init__(self, raw_track_link):
+        self.external_url = ExternalURL(raw_track_link['external_url'])
+        self.href = raw_track_link['href']
+        self.link_id = raw_track_link['id']
+        self.obj_type = raw_track_link['type']
+        self.uri = raw_track_link.get['uri']
 
 
 class SearchResult:
