@@ -6,7 +6,7 @@ import urllib.request
 
 from .consts import SEARCH_TYPES
 from .errors import SpotifyHTTPError, SpotifySearchError
-from .models import Album, Artist, SearchResult, SearchResultDetail
+from .models import Album, Artist, Track, SearchResult, SearchResultDetail
 
 
 class SpotifyBase:
@@ -86,8 +86,9 @@ class Spotify(SpotifyBase):
     def related_artists(self, artist_id):
         """
         Get information about 20 related artists to a given artist.
+        Endpoint: GET https://api.spotify.com/v1/artists/{id}/related-artists
         :param artist_id:
-        :return: List of Artist objects or json format dict when raw is True.
+        :return: List of Artist objects
         """
         endpoint = 'https://api.spotify.com/v1/artists/{artist_id}/related-artists'.format(
             artist_id=artist_id
@@ -105,6 +106,25 @@ class Spotify(SpotifyBase):
         for each in json_res['artists']:
             results.append(converter(each))
         return results
+
+    def tracks(self, track_id):
+        """
+        Get track information.
+        Endpoint: GET https://api.spotify.com/v1/tracks/{id}
+        :param track_id:
+        :return: Track object
+        """
+        endpoint = 'https://api.spotify.com/v1/tracks/{track_id}'.format(
+            track_id=track_id
+        )
+        req = urllib.request.Request(endpoint, headers=self.header_params)
+        try:
+            with urllib.request.urlopen(req) as res:
+                json_res = self.get_json_res(res)
+                result = Track(json_res)
+                return result
+        except urllib.error.HTTPError as e:
+            raise SpotifyHTTPError(e.reason, e.code)
 
     def paging(self, href):
         """
