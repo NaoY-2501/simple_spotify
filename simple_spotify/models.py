@@ -173,6 +173,21 @@ class Artist(SimplifiedArtist):
         return self.raw['popularity']
 
 
+class SimplifiedTrack(ObjectBase):
+
+    def __str__(self):
+        return self.raw['name']
+
+    @property
+    def artists(self):
+        converter = SimplifiedArtist.raw_to_object
+        artists = []
+        for artist in self.raw['artists']:
+            artists.append(converter(artist))
+        return artists
+
+
+
 class CopyRight:
     def __init__(self, raw_copyright):
         self.text = raw_copyright['text']
