@@ -192,5 +192,3 @@ class Spotify(SpotifyBase):
 
         results = SearchResult(q, search_type, json_res)
         return results
-
-
