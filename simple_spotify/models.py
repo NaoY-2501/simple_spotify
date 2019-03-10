@@ -5,6 +5,26 @@ class ObjectBase:
     def __init__(self, raw_json):
         self.raw = raw_json
 
+    @property
+    def external_urls(self):
+        return self.raw['external_urls']
+
+    @property
+    def href(self):
+        return self.raw['href']
+
+    @property
+    def name(self):
+        return self.raw['name']
+
+    @property
+    def obj_type(self):
+        return self.raw['type']
+
+    @property
+    def uri(self):
+        return self.raw['uri']
+
     @classmethod
     def raw_to_object(cls, raw_json):
         return cls(raw_json)
@@ -36,14 +56,6 @@ class SimplifiedAlbum(ObjectBase):
         return self.raw['available_markets']
 
     @property
-    def external_urls(self):
-        return self.raw['external_urls']
-
-    @property
-    def href(self):
-        return self.raw['href']
-
-    @property
     def album_id(self):
         return self.raw['id']
 
@@ -56,10 +68,6 @@ class SimplifiedAlbum(ObjectBase):
         return images
 
     @property
-    def name(self):
-        return self.raw['name']
-
-    @property
     def release_date(self):
         return self.raw['release_date']
 
@@ -70,14 +78,6 @@ class SimplifiedAlbum(ObjectBase):
     @property
     def restrictions(self):
         return self.raw['restrictions']
-
-    @property
-    def obj_type(self):
-        return self.raw['type']
-
-    @property
-    def uri(self):
-        return self.raw['uri']
 
 
 class Album(SimplifiedAlbum):
@@ -119,28 +119,8 @@ class SimplifiedArtist(ObjectBase):
         return self.name
 
     @property
-    def external_urls(self):
-        return ExternalURL(self.raw['external_urls'])
-
-    @property
-    def href(self):
-        return self.raw['href']
-
-    @property
     def artist_id(self):
         return self.raw['id']
-
-    @property
-    def name(self):
-        return self.raw['name']
-
-    @property
-    def obj_type(self):
-        return self.raw['type']
-
-    @property
-    def uri(self):
-        return self.raw['uri']
 
 
 class Artist(SimplifiedArtist):
@@ -203,14 +183,6 @@ class SimplifiedTrack(ObjectBase):
         return self.raw['explicit']
 
     @property
-    def external_urls(self):
-        return ExternalURL(self.raw['external_urls'])
-
-    @property
-    def href(self):
-        return self.raw['href']
-
-    @property
     def track_id(self):
         return self.raw['id']
 
@@ -243,14 +215,6 @@ class SimplifiedTrack(ObjectBase):
     @property
     def track_number(self):
         return self.raw['track_number']
-
-    @property
-    def obj_type(self):
-        return self.raw['type']
-
-    @property
-    def uri(self):
-        return self.raw['uri']
 
     @property
     def is_local(self):
