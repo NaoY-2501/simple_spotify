@@ -5,7 +5,7 @@ import urllib.parse
 import urllib.request
 
 from .consts import SEARCH_TYPES
-from .errors import SpotifyHTTPError, SpotifySearchError
+from .errors import SpotifyHTTPError, SpotifyQueryError
 from .models import Album, Artist, Track, SearchResult, SearchResultDetail
 
 
@@ -83,6 +83,38 @@ class Spotify(SpotifyBase):
         except urllib.error.HTTPError as e:
             raise SpotifyHTTPError(e.reason, e.code)
 
+    def artists(self, artist_ids):
+        """
+        Get several artists information.
+        Endpoint:GET https://api.spotify.com/v1/artists
+        :param artist_ids: list of artist id
+        :return: iterator of Artist objects
+        """
+
+        # query validation
+        if not isinstance(artist_ids, list):
+            raise SpotifyQueryError('artist ids must be list.')
+        for each in artist_ids:
+            if not isinstance(each, str):
+                raise SpotifyQueryError('artist id must be str.')
+
+        endpoint = 'https://api.spotify.com/v1/artists'
+        values = {
+            'ids': ','.join(artist_ids)
+        }
+
+        data = urllib.parse.urlencode(values)
+        full_url = endpoint + '?' + data
+        req = urllib.request.Request(full_url, headers=self.header_params)
+        try:
+            with urllib.request.urlopen(req) as res:
+                json_res = self.get_json_res(res)
+                converter = Artist.raw_to_object
+                for result in json_res['artists']:
+                    yield converter(result)
+        except urllib.error.HTTPError as e:
+            raise SpotifyHTTPError(e.reason, e.code)
+
     def related_artists(self, artist_id):
         """
         Get information about 20 related artists to a given artist.
@@ -106,6 +138,38 @@ class Spotify(SpotifyBase):
         for each in json_res['artists']:
             results.append(converter(each))
         return results
+
+    def artist_top_tracks(self, artist_id, county_code=None):
+        """
+        Get information about an artist's top tracks.
+        Endpoint: GET https://api.spotify.com/v1/artists/{id}/top-tracks
+        :param artist_id:
+        :param county_code: ISO 3166-1 alpha-2 country code
+        :return: iterator of Track objects
+        """
+        # coutry_code validation
+        if not county_code:
+            raise SpotifyQueryError('country_code is required parameter.')
+        if not isinstance(county_code, str):
+            raise SpotifyQueryError('country_code must be str.')
+
+        endpoint = 'https://api.spotify.com/v1/artists/{artist_id}/top-tracks'.format(
+            artist_id=artist_id
+        )
+        values = {
+            'country': county_code
+        }
+        data = urllib.parse.urlencode(values)
+        full_url = endpoint + '?' + data
+        req = urllib.request.Request(full_url, headers=self.header_params)
+        try:
+            with urllib.request.urlopen(req) as res:
+                json_res = self.get_json_res(res)
+                converter = Track.raw_to_object
+                for result in json_res['tracks']:
+                    yield converter(result)
+        except urllib.error.HTTPError as e:
+            raise SpotifyHTTPError(e.reason, e.code)
 
     def track(self, track_id):
         """
@@ -159,33 +223,33 @@ class Spotify(SpotifyBase):
 
         # query validation
         if not isinstance(q, str):
-            raise SpotifySearchError('Query must be str.')
+            raise SpotifyQueryError('Query must be str.')
         if not q:
-            raise SpotifySearchError('Query is empty.')
+            raise SpotifyQueryError('Query is empty.')
 
         # convert tuple to list.
         if isinstance(search_type, tuple):
             search_type = list(search_type)
         # type validation
         if not isinstance(search_type, list):
-            raise SpotifySearchError('search_type must be list.')
+            raise SpotifyQueryError('search_type must be list.')
 
         for t in search_type:
             try:
                 if t.lower() not in SEARCH_TYPES:
-                    raise SpotifySearchError('{} is invalid search type.'.format(t))
+                    raise SpotifyQueryError('{} is invalid search type.'.format(t))
             except AttributeError:
                 raise AttributeError('Invalid type object in search_type. search_type must be list of string')
 
         # limit validation
         if not isinstance(limit, int):
-            raise SpotifySearchError('limit must be int.')
+            raise SpotifyQueryError('limit must be int.')
         if limit > 50:
             limit = 50
 
         # offset validation
         if not isinstance(offset, int):
-            raise SpotifySearchError('offset must be int.')
+            raise SpotifyQueryError('offset must be int.')
         if offset > 10000:
             offset = 10000
 
