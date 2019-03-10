@@ -45,7 +45,7 @@ class SpotifyBase:
 
 class Spotify(SpotifyBase):
 
-    def album(self, album_id):
+    def albums(self, album_id):
         """
         Get album information
         Endpoint: GET https://api.spotify.com/v1/albums/{id}
@@ -64,7 +64,7 @@ class Spotify(SpotifyBase):
         except urllib.error.HTTPError as e:
             raise SpotifyHTTPError(e.reason, e.code)
 
-    def artist(self, artist_id):
+    def artists(self, artist_id):
         """
         Get artist information.
         Endpoint:GET https://api.spotify.com/v1/artists/{id}
