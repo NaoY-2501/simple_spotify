@@ -11,15 +11,17 @@ from .models import Album, Artist, Track, SearchResult, SearchResultDetail
 
 class SpotifyBase:
     def __init__(self, client_id, client_secret):
-        self.access_token = self.__auth__(client_id, client_secret)['access_token']
+        self.client_id = client_id
+        self.client_secret = client_secret
         self.header_params = {'Authorization': 'Bearer {}'.format(self.access_token)}
 
-    def __auth__(self, client_id, client_secret):
+    @property
+    def access_token(self):
         endpoint = 'https://accounts.spotify.com/api/token'
 
         base64string = base64.encodebytes('{client_id}:{client_secret}'.format(
-            client_id=client_id,
-            client_secret=client_secret
+            client_id=self.client_id,
+            client_secret=self.client_secret
         ).encode('utf-8'))
 
         headers = {'Authorization': 'Basic {base64string}'.format(
@@ -29,18 +31,18 @@ class SpotifyBase:
         body = {'grant_type': 'client_credentials'}
 
         data = urllib.parse.urlencode(body).encode('ascii')
-        req = urllib.request.Request(endpoint, data, headers)
-        try:
-            with urllib.request.urlopen(req) as res:
-                # keys:access_token, token_type, Bearer, expires_in, scope
-                json_res = self.get_json_res(res)
-            return json_res
-        except urllib.error.HTTPError as e:
-            raise HTTPError(e.reason, e.code)
+        json_res = self.get_json_res(endpoint, headers, data=data)
+        return json_res['access_token']
 
     @classmethod
-    def get_json_res(cls, res):
-        return json.loads(res.read().decode('utf-8'))
+    def get_json_res(cls, url, header_params, data=None):
+        req = urllib.request.Request(url, data, headers=header_params)
+        try:
+            with urllib.request.urlopen(req) as res:
+                json_res = json.loads(res.read().decode('utf-8'))
+        except urllib.error.HTTPError as e:
+            raise HTTPError(e.reason, e.code)
+        return json_res
 
 
 class Spotify(SpotifyBase):
@@ -55,14 +57,9 @@ class Spotify(SpotifyBase):
         endpoint = 'https://api.spotify.com/v1/albums/{id}'.format(
             id=album_id
         )
-        req = urllib.request.Request(endpoint, headers=self.header_params)
-        try:
-            with urllib.request.urlopen(req) as res:
-                json_res = self.get_json_res(res)
-                result = Album(json_res)
-                return result
-        except urllib.error.HTTPError as e:
-            raise HTTPError(e.reason, e.code)
+        json_res = self.get_json_res(endpoint, self.header_params)
+        result = Album(json_res)
+        return result
 
     def artist(self, artist_id):
         """
@@ -74,14 +71,9 @@ class Spotify(SpotifyBase):
         endpoint = 'https://api.spotify.com/v1/artists/{id}'.format(
             id=artist_id
         )
-        req = urllib.request.Request(endpoint, headers=self.header_params)
-        try:
-            with urllib.request.urlopen(req) as res:
-                json_res = self.get_json_res(res)
-                result = Artist(json_res)
-                return result
-        except urllib.error.HTTPError as e:
-            raise HTTPError(e.reason, e.code)
+        json_res = self.get_json_res(endpoint, self.header_params)
+        result = Artist(json_res)
+        return result
 
     def artists(self, artist_ids):
         """
@@ -105,15 +97,10 @@ class Spotify(SpotifyBase):
 
         data = urllib.parse.urlencode(values)
         full_url = endpoint + '?' + data
-        req = urllib.request.Request(full_url, headers=self.header_params)
-        try:
-            with urllib.request.urlopen(req) as res:
-                json_res = self.get_json_res(res)
-                converter = Artist.raw_to_object
-                for result in json_res['artists']:
-                    yield converter(result)
-        except urllib.error.HTTPError as e:
-            raise HTTPError(e.reason, e.code)
+        json_res = self.get_json_res(full_url, self.header_params)
+        converter = Artist.raw_to_object
+        for result in json_res['artists']:
+            yield converter(result)
 
     def related_artists(self, artist_id):
         """
@@ -125,14 +112,7 @@ class Spotify(SpotifyBase):
         endpoint = 'https://api.spotify.com/v1/artists/{artist_id}/related-artists'.format(
             artist_id=artist_id
         )
-        req = urllib.request.Request(endpoint, headers=self.header_params)
-
-        try:
-            with urllib.request.urlopen(req) as res:
-                json_res = self.get_json_res(res)
-        except urllib.error.HTTPError as e:
-            raise HTTPError(e.reason, e.code)
-
+        json_res = self.get_json_res(endpoint, self.header_params)
         converter = Artist.raw_to_object
         results = []
         for each in json_res['artists']:
@@ -161,15 +141,10 @@ class Spotify(SpotifyBase):
         }
         data = urllib.parse.urlencode(values)
         full_url = endpoint + '?' + data
-        req = urllib.request.Request(full_url, headers=self.header_params)
-        try:
-            with urllib.request.urlopen(req) as res:
-                json_res = self.get_json_res(res)
-                converter = Track.raw_to_object
-                for result in json_res['tracks']:
-                    yield converter(result)
-        except urllib.error.HTTPError as e:
-            raise HTTPError(e.reason, e.code)
+        json_res = self.get_json_res(full_url, self.header_params)
+        converter = Track.raw_to_object
+        for result in json_res['tracks']:
+            yield converter(result)
 
     def track(self, track_id):
         """
@@ -181,14 +156,9 @@ class Spotify(SpotifyBase):
         endpoint = 'https://api.spotify.com/v1/tracks/{track_id}'.format(
             track_id=track_id
         )
-        req = urllib.request.Request(endpoint, headers=self.header_params)
-        try:
-            with urllib.request.urlopen(req) as res:
-                json_res = self.get_json_res(res)
-                result = Track(json_res)
-                return result
-        except urllib.error.HTTPError as e:
-            raise HTTPError(e.reason, e.code)
+        json_res = self.get_json_res(endpoint, self.header_params)
+        result = Track(json_res)
+        return result
 
     def paging(self, href):
         """
@@ -266,13 +236,6 @@ class Spotify(SpotifyBase):
 
         data = urllib.parse.urlencode(values)
         full_url = endpoint + '?' + data
-        req = urllib.request.Request(full_url, headers=self.header_params)
-
-        try:
-            with urllib.request.urlopen(req) as res:
-                json_res = self.get_json_res(res)
-        except urllib.error.HTTPError as e:
-            raise HTTPError(e.reason, e.code)
-
+        json_res = self.get_json_res(full_url, self.header_params)
         results = SearchResult(q, search_type, json_res)
         return results
