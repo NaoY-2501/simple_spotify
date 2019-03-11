@@ -37,7 +37,7 @@ class SimplifiedAlbum(ObjectBase):
 
     @property
     def album_group(self):
-        return self.raw['album_group']
+        return self.raw.get('album_group')
 
     @property
     def album_type(self):
