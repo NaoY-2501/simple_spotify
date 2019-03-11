@@ -7,6 +7,13 @@ class ObjectBase:
     def __init__(self, raw_json):
         self.raw = raw_json
 
+    @classmethod
+    def raw_to_object(cls, raw_json):
+        return cls(raw_json)
+
+
+class SimplifiedObjectBase(ObjectBase):
+
     @property
     def external_urls(self):
         return self.raw['external_urls']['spotify']
@@ -27,12 +34,8 @@ class ObjectBase:
     def uri(self):
         return self.raw['uri']
 
-    @classmethod
-    def raw_to_object(cls, raw_json):
-        return cls(raw_json)
 
-
-class SimplifiedAlbum(ObjectBase):
+class SimplifiedAlbum(SimplifiedObjectBase):
 
     def __str__(self):
         return self.name
@@ -111,27 +114,79 @@ class Album(SimplifiedAlbum):
         return self.raw['tracks']
 
 
-class AudioFeature:
-    def __init__(self, raw_json):
-        self.raw = raw_json
-        self.duration_ms = self.raw['duration_ms']
-        self.key = self.raw['key']
-        self.mode = self.raw['mode']
-        self.time_signature = self.raw['time_signature']
-        self.acousticness = self.raw['acousticness']
-        self.danceability = self.raw['danceability']
-        self.energy = self.raw['energy']
-        self.instulmentalness = self.raw['instrumentalness']
-        self.liveness = self.raw['liveness']
-        self.loudness = self.raw['loudness']
-        self.speechiness = self.raw['speechiness']
-        self.valence = self.raw['valence']
-        self.tempo = self.raw['tempo']
-        self.track_id = self.raw['id']
-        self.uri = self.raw['uri']
-        self.track_href = self.raw['track_href']
-        self.analysis_url = self.raw['analysis_url']
-        self.obj_type = self.raw['type']
+class AudioFeature(ObjectBase):
+
+    @property
+    def duration_ms(self):
+        return self.raw['duration_ms']
+
+    @property
+    def key(self):
+        return self.raw['key']
+
+    @property
+    def mode(self):
+        return self.raw['mode']
+
+    @property
+    def time_signature(self):
+        return self.raw['time_signature']
+
+    @property
+    def acousticness(self):
+        return self.raw['acousticness']
+
+    @property
+    def danceability(self):
+        return self.raw['danceability']
+
+    @property
+    def energy(self):
+        return self.raw['energy']
+
+    @property
+    def instrumentalness(self):
+        return self.raw['instrumentalness']
+
+    @property
+    def liveness(self):
+        return self.raw['liveness']
+
+    @property
+    def loudness(self):
+        return self.raw['loudness']
+
+    @property
+    def speechiness(self):
+        return self.raw['speechiness']
+
+    @property
+    def valence(self):
+        return self.raw['valence']
+
+    @property
+    def tempo(self):
+        return self.raw['tempo']
+
+    @property
+    def track_id(self):
+        return self.raw['id']
+
+    @property
+    def uri(self):
+        return self.raw['uri']
+
+    @property
+    def track_href(self):
+        return self.raw['track_href']
+
+    @property
+    def analysis_url(self):
+        return self.raw['analysis_url']
+
+    @property
+    def obj_type(self):
+        return self.raw['type']
 
     @property
     def key_str(self):
@@ -146,7 +201,7 @@ class AudioFeature:
         return str(datetime.timedelta(seconds=self.duration_s))
 
 
-class SimplifiedArtist(ObjectBase):
+class SimplifiedArtist(SimplifiedObjectBase):
 
     def __str__(self):
         return self.name
@@ -186,7 +241,7 @@ class Artist(SimplifiedArtist):
         return self.raw['popularity']
 
 
-class SimplifiedTrack(ObjectBase):
+class SimplifiedTrack(SimplifiedObjectBase):
 
     def __str__(self):
         return self.raw['name']
