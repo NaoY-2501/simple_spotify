@@ -1,4 +1,6 @@
-from .consts import RESULT_TYPES
+import datetime
+
+from .consts import RESULT_TYPES, PITCH_CLASS
 
 
 class ObjectBase:
@@ -107,6 +109,41 @@ class Album(SimplifiedAlbum):
         # return array of simplified tracks inside paging object
         # TODO: return list of SimplifiedTrack after implement SimplifiedTrack Class.
         return self.raw['tracks']
+
+
+class AudioFeature:
+    def __init__(self, raw_json):
+        self.raw = raw_json
+        self.duration_ms = self.raw['duration_ms']
+        self.key = self.raw['key']
+        self.mode = self.raw['mode']
+        self.time_signature = self.raw['time_signature']
+        self.acousticness = self.raw['acousticness']
+        self.danceability = self.raw['danceability']
+        self.energy = self.raw['energy']
+        self.instulmentalness = self.raw['instrumentalness']
+        self.liveness = self.raw['liveness']
+        self.loudness = self.raw['loudness']
+        self.speechiness = self.raw['speechiness']
+        self.valence = self.raw['valence']
+        self.tempo = self.raw['tempo']
+        self.track_id = self.raw['id']
+        self.uri = self.raw['uri']
+        self.track_href = self.raw['track_href']
+        self.analysis_url = self.raw['analysis_url']
+        self.obj_type = self.raw['type']
+
+    @property
+    def key_str(self):
+        return PITCH_CLASS.get(self.key)
+
+    @property
+    def duration_s(self):
+        return self.duration_ms/1000
+
+    @property
+    def duration_minutes(self):
+        return str(datetime.timedelta(seconds=self.duration_s))
 
 
 class SimplifiedArtist(ObjectBase):

@@ -6,7 +6,7 @@ import urllib.request
 
 from .consts import SEARCH_TYPES
 from .errors import HTTPError, QueryValidationError
-from .models import Album, Artist, Track, SearchResult, SearchResultDetail
+from .models import Album, Artist, Track, AudioFeature, SearchResult, SearchResultDetail
 
 
 class SpotifyBase:
@@ -159,6 +159,19 @@ class Spotify(SpotifyBase):
         )
         json_res = self.get_json_res(endpoint, self.header_params)
         result = Track(json_res)
+        return result
+
+    def audio_feature(self, track_id):
+        """
+        Get audio feature for track.
+        :param track_id:
+        :return: AudioFeature object
+        """
+        endpoint = 'https://api.spotify.com/v1/audio-features/{track_id}'.format(
+            track_id=track_id
+        )
+        json_res = self.get_json_res(endpoint, self.header_params)
+        result = AudioFeature(json_res)
         return result
 
     def paging(self, href):
