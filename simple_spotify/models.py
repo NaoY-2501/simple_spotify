@@ -7,7 +7,7 @@ class ObjectBase:
 
     @property
     def external_urls(self):
-        return self.raw['external_urls']
+        return self.raw['external_urls']['spotify']
 
     @property
     def href(self):
@@ -91,12 +91,8 @@ class Album(SimplifiedAlbum):
         return copyrights
 
     @property
-    def external_uris(self):
-        return self.raw['external_uris']
-
-    @property
-    def external_urls(self):
-        return ExternalURL(self.raw['external_urls'])
+    def external_ids(self):
+        return ExternalID(self.raw['external_ids'])
 
     @property
     def label(self):
@@ -258,14 +254,6 @@ class ExternalID:
         )
 
 
-class ExternalURL:
-    def __init__(self, raw_external_url):
-        self.url = raw_external_url['spotify']
-
-    def __str__(self):
-        return self.url
-
-
 class Image:
     def __init__(self, image):
         self.height = image['height']
@@ -287,7 +275,7 @@ class Restrictions:
 
 class TrackLink:
     def __init__(self, raw_track_link):
-        self.external_url = ExternalURL(raw_track_link['external_url'])
+        self.external_url = raw_track_link['external_url']['spotify']
         self.href = raw_track_link['href']
         self.link_id = raw_track_link['id']
         self.obj_type = raw_track_link['type']
