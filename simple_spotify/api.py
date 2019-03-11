@@ -79,18 +79,19 @@ class Spotify(SpotifyBase):
         """
         Get several artists information.
         Endpoint:GET https://api.spotify.com/v1/artists
-        :param artist_ids: list of artist id
+        :param artist_ids: list of artist id. Maximum : 50 IDs
         :return: iterator of Artist objects
         """
-
+        endpoint = 'https://api.spotify.com/v1/artists'
         # query validation
         if not isinstance(artist_ids, list):
             raise QueryValidationError('artist ids must be list.')
+        if len(artist_ids) > 50:
+            raise QueryValidationError('Too many ids. Maximum length is 50.')
         for each in artist_ids:
             if not isinstance(each, str):
                 raise QueryValidationError('artist id must be str.')
 
-        endpoint = 'https://api.spotify.com/v1/artists'
         values = {
             'ids': ','.join(artist_ids)
         }
@@ -127,15 +128,15 @@ class Spotify(SpotifyBase):
         :param county_code: ISO 3166-1 alpha-2 country code
         :return: iterator of Track objects
         """
+        endpoint = 'https://api.spotify.com/v1/artists/{artist_id}/top-tracks'.format(
+            artist_id=artist_id
+        )
         # coutry_code validation
         if not county_code:
             raise QueryValidationError('country_code is required parameter.')
         if not isinstance(county_code, str):
             raise QueryValidationError('country_code must be str.')
 
-        endpoint = 'https://api.spotify.com/v1/artists/{artist_id}/top-tracks'.format(
-            artist_id=artist_id
-        )
         values = {
             'country': county_code
         }
