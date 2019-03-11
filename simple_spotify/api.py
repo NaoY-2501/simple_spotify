@@ -5,7 +5,7 @@ import urllib.parse
 import urllib.request
 
 from .consts import SEARCH_TYPES
-from .errors import SpotifyHTTPError, SpotifyQueryError
+from .errors import HTTPError, QueryValidationError
 from .models import Album, Artist, Track, SearchResult, SearchResultDetail
 
 
@@ -36,7 +36,7 @@ class SpotifyBase:
                 json_res = self.get_json_res(res)
             return json_res
         except urllib.error.HTTPError as e:
-            raise SpotifyHTTPError(e.reason, e.code)
+            raise HTTPError(e.reason, e.code)
 
     @classmethod
     def get_json_res(cls, res):
@@ -62,7 +62,7 @@ class Spotify(SpotifyBase):
                 result = Album(json_res)
                 return result
         except urllib.error.HTTPError as e:
-            raise SpotifyHTTPError(e.reason, e.code)
+            raise HTTPError(e.reason, e.code)
 
     def artist(self, artist_id):
         """
@@ -81,7 +81,7 @@ class Spotify(SpotifyBase):
                 result = Artist(json_res)
                 return result
         except urllib.error.HTTPError as e:
-            raise SpotifyHTTPError(e.reason, e.code)
+            raise HTTPError(e.reason, e.code)
 
     def artists(self, artist_ids):
         """
@@ -93,10 +93,10 @@ class Spotify(SpotifyBase):
 
         # query validation
         if not isinstance(artist_ids, list):
-            raise SpotifyQueryError('artist ids must be list.')
+            raise QueryValidationError('artist ids must be list.')
         for each in artist_ids:
             if not isinstance(each, str):
-                raise SpotifyQueryError('artist id must be str.')
+                raise QueryValidationError('artist id must be str.')
 
         endpoint = 'https://api.spotify.com/v1/artists'
         values = {
@@ -113,7 +113,7 @@ class Spotify(SpotifyBase):
                 for result in json_res['artists']:
                     yield converter(result)
         except urllib.error.HTTPError as e:
-            raise SpotifyHTTPError(e.reason, e.code)
+            raise HTTPError(e.reason, e.code)
 
     def related_artists(self, artist_id):
         """
@@ -131,7 +131,7 @@ class Spotify(SpotifyBase):
             with urllib.request.urlopen(req) as res:
                 json_res = self.get_json_res(res)
         except urllib.error.HTTPError as e:
-            raise SpotifyHTTPError(e.reason, e.code)
+            raise HTTPError(e.reason, e.code)
 
         converter = Artist.raw_to_object
         results = []
@@ -149,9 +149,9 @@ class Spotify(SpotifyBase):
         """
         # coutry_code validation
         if not county_code:
-            raise SpotifyQueryError('country_code is required parameter.')
+            raise QueryValidationError('country_code is required parameter.')
         if not isinstance(county_code, str):
-            raise SpotifyQueryError('country_code must be str.')
+            raise QueryValidationError('country_code must be str.')
 
         endpoint = 'https://api.spotify.com/v1/artists/{artist_id}/top-tracks'.format(
             artist_id=artist_id
@@ -169,7 +169,7 @@ class Spotify(SpotifyBase):
                 for result in json_res['tracks']:
                     yield converter(result)
         except urllib.error.HTTPError as e:
-            raise SpotifyHTTPError(e.reason, e.code)
+            raise HTTPError(e.reason, e.code)
 
     def track(self, track_id):
         """
@@ -188,7 +188,7 @@ class Spotify(SpotifyBase):
                 result = Track(json_res)
                 return result
         except urllib.error.HTTPError as e:
-            raise SpotifyHTTPError(e.reason, e.code)
+            raise HTTPError(e.reason, e.code)
 
     def paging(self, href):
         """
@@ -203,7 +203,7 @@ class Spotify(SpotifyBase):
                 with urllib.request.urlopen(req) as res:
                     json_res = self.get_json_res(res)
             except urllib.error.HTTPError as e:
-                raise SpotifyHTTPError(e.reason, e.code)
+                raise HTTPError(e.reason, e.code)
 
             key = list(json_res.keys())[0]
             return SearchResultDetail(json_res[key])
@@ -223,33 +223,33 @@ class Spotify(SpotifyBase):
 
         # query validation
         if not isinstance(q, str):
-            raise SpotifyQueryError('Query must be str.')
+            raise QueryValidationError('Query must be str.')
         if not q:
-            raise SpotifyQueryError('Query is empty.')
+            raise QueryValidationError('Query is empty.')
 
         # convert tuple to list.
         if isinstance(search_type, tuple):
             search_type = list(search_type)
         # type validation
         if not isinstance(search_type, list):
-            raise SpotifyQueryError('search_type must be list.')
+            raise QueryValidationError('search_type must be list.')
 
         for t in search_type:
             try:
                 if t.lower() not in SEARCH_TYPES:
-                    raise SpotifyQueryError('{} is invalid search type.'.format(t))
+                    raise QueryValidationError('{} is invalid search type.'.format(t))
             except AttributeError:
                 raise AttributeError('Invalid type object in search_type. search_type must be list of string')
 
         # limit validation
         if not isinstance(limit, int):
-            raise SpotifyQueryError('limit must be int.')
+            raise QueryValidationError('limit must be int.')
         if limit > 50:
             limit = 50
 
         # offset validation
         if not isinstance(offset, int):
-            raise SpotifyQueryError('offset must be int.')
+            raise QueryValidationError('offset must be int.')
         if offset > 10000:
             offset = 10000
 
@@ -272,7 +272,7 @@ class Spotify(SpotifyBase):
             with urllib.request.urlopen(req) as res:
                 json_res = self.get_json_res(res)
         except urllib.error.HTTPError as e:
-            raise SpotifyHTTPError(e.reason, e.code)
+            raise HTTPError(e.reason, e.code)
 
         results = SearchResult(q, search_type, json_res)
         return results

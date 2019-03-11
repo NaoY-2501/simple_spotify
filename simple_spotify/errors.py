@@ -1,4 +1,4 @@
-class SpotifyHTTPError(Exception):
+class HTTPError(Exception):
     def __init__(self, reason, code):
         self.reason = reason
         self.status_code = code
@@ -10,7 +10,7 @@ class SpotifyHTTPError(Exception):
         )
 
 
-class SpotifyQueryError(Exception):
+class QueryValidationError(Exception):
     def __init__(self, reason):
         self.reason = reason
 
