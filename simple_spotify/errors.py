@@ -16,3 +16,11 @@ class QueryValidationError(Exception):
 
     def __str__(self):
         return self.reason
+
+
+class SpotifyIdsNotAssignedError(Exception):
+    def __init__(self):
+        self.reason = 'Spotify ID is not assigned.'
+
+    def __str__(self):
+        return self.reason
