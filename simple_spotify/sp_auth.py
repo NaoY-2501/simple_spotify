@@ -8,6 +8,10 @@ ENDPOINT = 'https://accounts.spotify.com/authorize'
 
 
 def input_params():
+    """
+    Make param for authorizing access.
+    :return: data
+    """
     client_id = input('Enter your Client ID :')
 
     redirect_uri = input('Enter redirect URI :')
