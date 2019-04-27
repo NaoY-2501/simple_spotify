@@ -1,10 +1,5 @@
-import base64
-import json
-import random
 import urllib.parse
 import urllib.request
-import webbrowser
-import string
 
 ENDPOINT = 'https://accounts.spotify.com/authorize'
 
