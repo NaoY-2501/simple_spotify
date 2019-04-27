@@ -51,7 +51,10 @@ def main():
 
     params = urllib.parse.urlencode(data)
 
-    url = f'{ENDPOINT}?{params}'
+    url = '{ENDPOINT}?{params}'.format(
+        ENDPOINT=ENDPOINT,
+        params=params
+    )
 
     webbrowser.open(url)
 

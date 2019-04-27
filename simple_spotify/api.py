@@ -24,6 +24,14 @@ class SpotifyBase:
             raise HTTPError(e.reason, e.code)
         return response
 
+    @classmethod
+    def make_full_url(cls, endpoint, data):
+        full_url = '{endpoint}?{data}'.format(
+            endpoint=endpoint,
+            data=data
+        )
+        return full_url
+
 
 class Spotify(SpotifyBase):
 
@@ -80,7 +88,7 @@ class Spotify(SpotifyBase):
         }
 
         data = urllib.parse.urlencode(query)
-        full_url = endpoint + '?' + data
+        full_url = self.make_full_url(endpoint, data)
         json_res = self.get_response(full_url)
         converter = Artist.raw_to_object
         for result in json_res['artists']:
@@ -126,7 +134,7 @@ class Spotify(SpotifyBase):
             'country': county_code
         }
         data = urllib.parse.urlencode(query)
-        full_url = endpoint + '?' + data
+        full_url = self.make_full_url(endpoint, data)
         json_res = self.get_response(full_url)
         converter = Track.raw_to_object
         for result in json_res['tracks']:
@@ -238,7 +246,7 @@ class Spotify(SpotifyBase):
             queries['market'] = market
 
         data = urllib.parse.urlencode(queries)
-        full_url = endpoint + '?' + data
+        full_url = self.make_full_url(endpoint, data)
         json_res = self.get_response(full_url)
         results = SearchResult(q, search_type, json_res)
         return results
