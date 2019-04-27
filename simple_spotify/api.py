@@ -75,11 +75,11 @@ class Spotify(SpotifyBase):
             if not isinstance(each, str):
                 raise QueryValidationError('artist id must be str.')
 
-        values = {
+        query = {
             'ids': ','.join(artist_ids)
         }
 
-        data = urllib.parse.urlencode(values)
+        data = urllib.parse.urlencode(query)
         full_url = endpoint + '?' + data
         json_res = self.get_response(full_url)
         converter = Artist.raw_to_object
@@ -122,10 +122,10 @@ class Spotify(SpotifyBase):
         if not isinstance(county_code, str):
             raise QueryValidationError('country_code must be str.')
 
-        values = {
+        query = {
             'country': county_code
         }
-        data = urllib.parse.urlencode(values)
+        data = urllib.parse.urlencode(query)
         full_url = endpoint + '?' + data
         json_res = self.get_response(full_url)
         converter = Track.raw_to_object
@@ -228,16 +228,16 @@ class Spotify(SpotifyBase):
 
         typestring = ','.join([t.lower() for t in search_type])
 
-        values = {
+        queries = {
             'q': q,
             'type': typestring,
             'limit': limit,
             'offset': offset
         }
         if market:
-            values['market'] = market
+            queries['market'] = market
 
-        data = urllib.parse.urlencode(values)
+        data = urllib.parse.urlencode(queries)
         full_url = endpoint + '?' + data
         json_res = self.get_response(full_url)
         results = SearchResult(q, search_type, json_res)
