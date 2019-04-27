@@ -91,8 +91,10 @@ class Spotify(SpotifyBase):
         full_url = self.make_full_url(endpoint, data)
         json_res = self.get_response(full_url)
         converter = Artist.raw_to_object
+        results = []
         for result in json_res['artists']:
-            yield converter(result)
+            results.append(converter(result))
+        return results
 
     @has_ids
     def related_artists(self, artist_id):
