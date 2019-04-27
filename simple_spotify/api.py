@@ -4,6 +4,7 @@ import urllib.parse
 import urllib.request
 
 from .consts import SEARCH_TYPES
+from .decorators import has_ids
 from .errors import HTTPError, QueryValidationError
 from .models import Album, Artist, Track, AudioFeature, SearchResult, SearchResultDetail
 
@@ -26,6 +27,7 @@ class SpotifyBase:
 
 class Spotify(SpotifyBase):
 
+    @has_ids
     def album(self, album_id):
         """
         Get album information
@@ -40,6 +42,7 @@ class Spotify(SpotifyBase):
         result = Album(json_res)
         return result
 
+    @has_ids
     def artist(self, artist_id):
         """
         Get artist information.
@@ -54,6 +57,7 @@ class Spotify(SpotifyBase):
         result = Artist(json_res)
         return result
 
+    @has_ids
     def artists(self, artist_ids):
         """
         Get several artists information.
@@ -82,6 +86,7 @@ class Spotify(SpotifyBase):
         for result in json_res['artists']:
             yield converter(result)
 
+    @has_ids
     def related_artists(self, artist_id):
         """
         Get information about 20 related artists to a given artist.
@@ -99,6 +104,7 @@ class Spotify(SpotifyBase):
             results.append(converter(each))
         return results
 
+    @has_ids
     def artist_top_tracks(self, artist_id, county_code=None):
         """
         Get information about an artist's top tracks.
@@ -126,6 +132,7 @@ class Spotify(SpotifyBase):
         for result in json_res['tracks']:
             yield converter(result)
 
+    @has_ids
     def track(self, track_id):
         """
         Get track information.
@@ -140,6 +147,7 @@ class Spotify(SpotifyBase):
         result = Track(json_res)
         return result
 
+    @has_ids
     def audio_feature(self, track_id):
         """
         Get audio feature for track.
@@ -178,7 +186,7 @@ class Spotify(SpotifyBase):
         """
         Get information about artists, albums, tracks, playlist with match a keyword string.
         :param q: search keyword
-        :param search_type: list of search type. Default is [album, artist, playlist, track].
+        :param search_type: list of search type. Default is ['album', 'artist', 'playlist', 'track'].
         :param market: ISO 3166-1 alpha-2 country code
         :param limit: maximum number of results to return. Default 20. min 1, max 50.
         :param offset: The index of the first result to return. Default 0. max 10,000.
