@@ -57,7 +57,6 @@ def main():
 
     auth_params = {
         'client_id': data['client_id'],
-        'client_secret': data['client_secret'],
         'redirect_uri': data['redirect_uri'],
         'code': code,
     }
