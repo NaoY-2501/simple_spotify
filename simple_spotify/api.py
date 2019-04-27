@@ -1,4 +1,3 @@
-import base64
 import json
 import urllib.error
 import urllib.parse
@@ -10,39 +9,19 @@ from .models import Album, Artist, Track, AudioFeature, SearchResult, SearchResu
 
 
 class SpotifyBase:
-    def __init__(self, client_id, client_secret):
-        self.client_id = client_id
-        self.client_secret = client_secret
-        self.header_params = {'Authorization': 'Bearer {}'.format(self.access_token)}
+    def __init__(self, authorization):
+        self.authorization = authorization
 
-    @property
-    def access_token(self):
-        endpoint = 'https://accounts.spotify.com/api/token'
-
-        base64string = base64.encodebytes('{client_id}:{client_secret}'.format(
-            client_id=self.client_id,
-            client_secret=self.client_secret
-        ).encode('utf-8'))
-
-        headers = {'Authorization': 'Basic {base64string}'.format(
-            base64string=base64string.decode('utf-8')
-        ).replace('\n', '')}  # trailing \n in base64string
-
-        body = {'grant_type': 'client_credentials'}
-
-        data = urllib.parse.urlencode(body).encode('ascii')
-        json_res = self.get_json_res(endpoint, headers, data=data)
-        return json_res['access_token']
-
-    @classmethod
-    def get_json_res(cls, url, header_params, data=None):
-        req = urllib.request.Request(url, data, headers=header_params)
+    def get_response(self, url, data=None):
+        req = urllib.request.Request(
+            url, data, headers=self.authorization.authorization
+        )
         try:
             with urllib.request.urlopen(req) as res:
-                json_res = json.loads(res.read().decode('utf-8'))
+                response = json.loads(res.read().decode('utf-8'))
         except urllib.error.HTTPError as e:
             raise HTTPError(e.reason, e.code)
-        return json_res
+        return response
 
 
 class Spotify(SpotifyBase):
@@ -57,7 +36,7 @@ class Spotify(SpotifyBase):
         endpoint = 'https://api.spotify.com/v1/albums/{id}'.format(
             id=album_id
         )
-        json_res = self.get_json_res(endpoint, self.header_params)
+        json_res = self.get_response(endpoint)
         result = Album(json_res)
         return result
 
@@ -71,7 +50,7 @@ class Spotify(SpotifyBase):
         endpoint = 'https://api.spotify.com/v1/artists/{id}'.format(
             id=artist_id
         )
-        json_res = self.get_json_res(endpoint, self.header_params)
+        json_res = self.get_response(endpoint)
         result = Artist(json_res)
         return result
 
@@ -98,7 +77,7 @@ class Spotify(SpotifyBase):
 
         data = urllib.parse.urlencode(values)
         full_url = endpoint + '?' + data
-        json_res = self.get_json_res(full_url, self.header_params)
+        json_res = self.get_response(full_url)
         converter = Artist.raw_to_object
         for result in json_res['artists']:
             yield converter(result)
@@ -113,7 +92,7 @@ class Spotify(SpotifyBase):
         endpoint = 'https://api.spotify.com/v1/artists/{artist_id}/related-artists'.format(
             artist_id=artist_id
         )
-        json_res = self.get_json_res(endpoint, self.header_params)
+        json_res = self.get_response(endpoint)
         converter = Artist.raw_to_object
         results = []
         for each in json_res['artists']:
@@ -142,7 +121,7 @@ class Spotify(SpotifyBase):
         }
         data = urllib.parse.urlencode(values)
         full_url = endpoint + '?' + data
-        json_res = self.get_json_res(full_url, self.header_params)
+        json_res = self.get_response(full_url)
         converter = Track.raw_to_object
         for result in json_res['tracks']:
             yield converter(result)
@@ -157,7 +136,7 @@ class Spotify(SpotifyBase):
         endpoint = 'https://api.spotify.com/v1/tracks/{track_id}'.format(
             track_id=track_id
         )
-        json_res = self.get_json_res(endpoint, self.header_params)
+        json_res = self.get_response(endpoint)
         result = Track(json_res)
         return result
 
@@ -170,7 +149,7 @@ class Spotify(SpotifyBase):
         endpoint = 'https://api.spotify.com/v1/audio-features/{track_id}'.format(
             track_id=track_id
         )
-        json_res = self.get_json_res(endpoint, self.header_params)
+        json_res = self.get_response(endpoint)
         result = AudioFeature(json_res)
         return result
 
@@ -181,11 +160,13 @@ class Spotify(SpotifyBase):
         :return: SearchResultDetail object or json format dict when raw is True.
         """
         if href:
-            req = urllib.request.Request(href, headers=self.header_params)
+            req = urllib.request.Request(
+                href, headers=self.authorization.authorization
+            )
 
             try:
                 with urllib.request.urlopen(req) as res:
-                    json_res = self.get_json_res(res)
+                    json_res = self.get_response(res)
             except urllib.error.HTTPError as e:
                 raise HTTPError(e.reason, e.code)
 
@@ -250,6 +231,6 @@ class Spotify(SpotifyBase):
 
         data = urllib.parse.urlencode(values)
         full_url = endpoint + '?' + data
-        json_res = self.get_json_res(full_url, self.header_params)
+        json_res = self.get_response(full_url)
         results = SearchResult(q, search_type, json_res)
         return results
