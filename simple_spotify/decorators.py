@@ -2,11 +2,10 @@ from .errors import SpotifyIdsNotAssignedError
 
 
 def has_ids(func):
-    print(func)
 
-    def wrapper(self, spotify_ids, *args, **kwargs):
+    def wrapper(self, spotify_ids=None, **kwargs):
         if not spotify_ids:
             raise SpotifyIdsNotAssignedError
-        result = func(self, spotify_ids, *args, **kwargs)
+        result = func(self, spotify_ids, **kwargs)
         return result
     return wrapper
