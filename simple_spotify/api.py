@@ -46,8 +46,8 @@ class Spotify(SpotifyBase):
         endpoint = 'https://api.spotify.com/v1/albums/{id}'.format(
             id=album_id
         )
-        json_res = self.get_response(endpoint)
-        result = Album(json_res)
+        response = self.get_response(endpoint)
+        result = Album(response)
         return result
 
     @has_ids
@@ -61,8 +61,8 @@ class Spotify(SpotifyBase):
         endpoint = 'https://api.spotify.com/v1/artists/{id}'.format(
             id=artist_id
         )
-        json_res = self.get_response(endpoint)
-        result = Artist(json_res)
+        response = self.get_response(endpoint)
+        result = Artist(response)
         return result
 
     @has_ids
@@ -89,10 +89,10 @@ class Spotify(SpotifyBase):
 
         data = urllib.parse.urlencode(query)
         full_url = self.make_full_url(endpoint, data)
-        json_res = self.get_response(full_url)
+        response = self.get_response(full_url)
         converter = Artist.raw_to_object
         results = []
-        for result in json_res['artists']:
+        for result in response['artists']:
             results.append(converter(result))
         return results
 
@@ -107,10 +107,10 @@ class Spotify(SpotifyBase):
         endpoint = 'https://api.spotify.com/v1/artists/{artist_id}/related-artists'.format(
             artist_id=artist_id
         )
-        json_res = self.get_response(endpoint)
+        response = self.get_response(endpoint)
         converter = Artist.raw_to_object
         results = []
-        for result in json_res['artists']:
+        for result in response['artists']:
             results.append(converter(result))
         return results
 
@@ -137,10 +137,10 @@ class Spotify(SpotifyBase):
         }
         data = urllib.parse.urlencode(query)
         full_url = self.make_full_url(endpoint, data)
-        json_res = self.get_response(full_url)
+        response = self.get_response(full_url)
         converter = Track.raw_to_object
         results = []
-        for result in json_res['tracks']:
+        for result in response['tracks']:
             results.append(converter(result))
         return results
 
@@ -156,8 +156,8 @@ class Spotify(SpotifyBase):
         endpoint = 'https://api.spotify.com/v1/tracks/{track_id}'.format(
             track_id=track_id
         )
-        json_res = self.get_response(endpoint)
-        result = Track(json_res)
+        response = self.get_response(endpoint)
+        result = Track(response)
         return result
 
     @has_ids
@@ -170,8 +170,8 @@ class Spotify(SpotifyBase):
         endpoint = 'https://api.spotify.com/v1/audio-features/{track_id}'.format(
             track_id=track_id
         )
-        json_res = self.get_response(endpoint)
-        result = AudioFeature(json_res)
+        response = self.get_response(endpoint)
+        result = AudioFeature(response)
         return result
 
     def paging(self, href):
@@ -187,12 +187,12 @@ class Spotify(SpotifyBase):
 
             try:
                 with urllib.request.urlopen(req) as res:
-                    json_res = self.get_response(res)
+                    response = self.get_response(res)
             except urllib.error.HTTPError as e:
                 raise HTTPError(e.reason, e.code)
 
-            key = list(json_res.keys())[0]
-            return SearchResultDetail(json_res[key])
+            key = list(response.keys())[0]
+            return SearchResultDetail(response[key])
         return None
 
     def search(self, q='', search_types=SEARCH_TYPES, market=None, limit=20, offset=0):
@@ -249,6 +249,6 @@ class Spotify(SpotifyBase):
 
         data = urllib.parse.urlencode(queries)
         full_url = self.make_full_url(endpoint, data)
-        json_res = self.get_response(full_url)
-        results = SearchResult(q, search_types, json_res)
+        response = self.get_response(full_url)
+        results = SearchResult(q, search_types, response)
         return results
