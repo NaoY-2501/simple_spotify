@@ -110,8 +110,8 @@ class Spotify(SpotifyBase):
         json_res = self.get_response(endpoint)
         converter = Artist.raw_to_object
         results = []
-        for each in json_res['artists']:
-            results.append(converter(each))
+        for result in json_res['artists']:
+            results.append(converter(result))
         return results
 
     @has_ids
@@ -139,8 +139,11 @@ class Spotify(SpotifyBase):
         full_url = self.make_full_url(endpoint, data)
         json_res = self.get_response(full_url)
         converter = Track.raw_to_object
+        results = []
         for result in json_res['tracks']:
-            yield converter(result)
+            results.append(converter(result))
+        return results
+
 
     @has_ids
     def track(self, track_id):
