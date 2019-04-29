@@ -46,8 +46,8 @@ class Spotify(SpotifyBase):
         endpoint = 'https://api.spotify.com/v1/albums/{id}'.format(
             id=album_id
         )
-        json_res = self.get_response(endpoint)
-        result = Album(json_res)
+        response = self.get_response(endpoint)
+        result = Album(response)
         return result
 
     @has_ids
@@ -61,8 +61,8 @@ class Spotify(SpotifyBase):
         endpoint = 'https://api.spotify.com/v1/artists/{id}'.format(
             id=artist_id
         )
-        json_res = self.get_response(endpoint)
-        result = Artist(json_res)
+        response = self.get_response(endpoint)
+        result = Artist(response)
         return result
 
     @has_ids
@@ -89,10 +89,12 @@ class Spotify(SpotifyBase):
 
         data = urllib.parse.urlencode(query)
         full_url = self.make_full_url(endpoint, data)
-        json_res = self.get_response(full_url)
+        response = self.get_response(full_url)
         converter = Artist.raw_to_object
-        for result in json_res['artists']:
-            yield converter(result)
+        results = []
+        for result in response['artists']:
+            results.append(converter(result))
+        return results
 
     @has_ids
     def related_artists(self, artist_id):
@@ -105,11 +107,11 @@ class Spotify(SpotifyBase):
         endpoint = 'https://api.spotify.com/v1/artists/{artist_id}/related-artists'.format(
             artist_id=artist_id
         )
-        json_res = self.get_response(endpoint)
+        response = self.get_response(endpoint)
         converter = Artist.raw_to_object
         results = []
-        for each in json_res['artists']:
-            results.append(converter(each))
+        for result in response['artists']:
+            results.append(converter(result))
         return results
 
     @has_ids
@@ -135,10 +137,13 @@ class Spotify(SpotifyBase):
         }
         data = urllib.parse.urlencode(query)
         full_url = self.make_full_url(endpoint, data)
-        json_res = self.get_response(full_url)
+        response = self.get_response(full_url)
         converter = Track.raw_to_object
-        for result in json_res['tracks']:
-            yield converter(result)
+        results = []
+        for result in response['tracks']:
+            results.append(converter(result))
+        return results
+
 
     @has_ids
     def track(self, track_id):
@@ -151,8 +156,8 @@ class Spotify(SpotifyBase):
         endpoint = 'https://api.spotify.com/v1/tracks/{track_id}'.format(
             track_id=track_id
         )
-        json_res = self.get_response(endpoint)
-        result = Track(json_res)
+        response = self.get_response(endpoint)
+        result = Track(response)
         return result
 
     @has_ids
@@ -165,8 +170,8 @@ class Spotify(SpotifyBase):
         endpoint = 'https://api.spotify.com/v1/audio-features/{track_id}'.format(
             track_id=track_id
         )
-        json_res = self.get_response(endpoint)
-        result = AudioFeature(json_res)
+        response = self.get_response(endpoint)
+        result = AudioFeature(response)
         return result
 
     def paging(self, href):
@@ -182,19 +187,19 @@ class Spotify(SpotifyBase):
 
             try:
                 with urllib.request.urlopen(req) as res:
-                    json_res = self.get_response(res)
+                    response = self.get_response(res)
             except urllib.error.HTTPError as e:
                 raise HTTPError(e.reason, e.code)
 
-            key = list(json_res.keys())[0]
-            return SearchResultDetail(json_res[key])
+            key = list(response.keys())[0]
+            return SearchResultDetail(response[key])
         return None
 
-    def search(self, q='', search_type=SEARCH_TYPES, market=None, limit=20, offset=0):
+    def search(self, q='', search_types=SEARCH_TYPES, market=None, limit=20, offset=0):
         """
         Get information about artists, albums, tracks, playlist with match a keyword string.
         :param q: search keyword
-        :param search_type: list of search type. Default is ['album', 'artist', 'playlist', 'track'].
+        :param search_types: iterable object contains search type. Default is ['album', 'artist', 'playlist', 'track'].
         :param market: ISO 3166-1 alpha-2 country code
         :param limit: maximum number of results to return. Default 20. min 1, max 50.
         :param offset: The index of the first result to return. Default 0. max 10,000.
@@ -202,39 +207,36 @@ class Spotify(SpotifyBase):
         """
         endpoint = 'https://api.spotify.com/v1/search'
 
-        # query validation
+        # validate query
         if not isinstance(q, str):
             raise QueryValidationError('Query must be str.')
         if not q:
             raise QueryValidationError('Query is empty.')
 
-        # convert tuple to list.
-        if isinstance(search_type, tuple):
-            search_type = list(search_type)
-        # type validation
-        if not isinstance(search_type, list):
-            raise QueryValidationError('search_type must be list.')
+        # validate search_types
+        if not hasattr(search_types, '__iter__'):
+            raise QueryValidationError('search_types must be iterable object.')
 
-        for t in search_type:
+        for t in search_types:
             try:
                 if t.lower() not in SEARCH_TYPES:
                     raise QueryValidationError('{} is invalid search type.'.format(t))
             except AttributeError:
-                raise AttributeError('Invalid type object in search_type. search_type must be list of string')
+                raise AttributeError('Invalid type object in search_types. search_types must be list of string')
 
-        # limit validation
+        # validate limit
         if not isinstance(limit, int):
             raise QueryValidationError('limit must be int.')
         if limit > 50:
             limit = 50
 
-        # offset validation
+        # validate offset
         if not isinstance(offset, int):
             raise QueryValidationError('offset must be int.')
         if offset > 10000:
             offset = 10000
 
-        typestring = ','.join([t.lower() for t in search_type])
+        typestring = ','.join([t.lower() for t in search_types])
 
         queries = {
             'q': q,
@@ -247,6 +249,6 @@ class Spotify(SpotifyBase):
 
         data = urllib.parse.urlencode(queries)
         full_url = self.make_full_url(endpoint, data)
-        json_res = self.get_response(full_url)
-        results = SearchResult(q, search_type, json_res)
+        response = self.get_response(full_url)
+        results = SearchResult(q, search_types, response)
         return results
