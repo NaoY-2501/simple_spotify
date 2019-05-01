@@ -12,7 +12,7 @@ class ObjectBase:
         return self.raw
 
     @classmethod
-    def raw_to_object(cls, raw_json):
+    def to_object(cls, raw_json):
         return cls(raw_json)
 
 
@@ -54,7 +54,7 @@ class SimplifiedAlbum(SimplifiedObjectBase):
 
     @property
     def artists(self):
-        converter = SimplifiedArtist.raw_to_object
+        converter = SimplifiedArtist.to_object
         artists = []
         for artist in self.raw['artists']:
             artists.append(converter(artist))
@@ -252,7 +252,7 @@ class SimplifiedTrack(SimplifiedObjectBase):
 
     @property
     def artists(self):
-        converter = SimplifiedArtist.raw_to_object
+        converter = SimplifiedArtist.to_object
         artists = []
         for artist in self.raw['artists']:
             artists.append(converter(artist))
