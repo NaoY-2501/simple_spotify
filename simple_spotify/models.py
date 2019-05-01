@@ -7,6 +7,10 @@ class ObjectBase:
     def __init__(self, raw_json):
         self.raw = raw_json
 
+    @property
+    def as_json(self):
+        return self.raw
+
     @classmethod
     def raw_to_object(cls, raw_json):
         return cls(raw_json)
