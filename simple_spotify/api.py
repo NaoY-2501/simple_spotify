@@ -4,7 +4,7 @@ import urllib.parse
 import urllib.request
 
 from .consts import SEARCH_TYPES
-from .decorators import has_ids
+from .decorators import has_ids, token_refresh
 from .errors import HTTPError, QueryValidationError
 from .models import Album, Artist, Track, AudioFeature, SearchResult, SearchResultDetail
 
@@ -36,6 +36,7 @@ class SpotifyBase:
 class Spotify(SpotifyBase):
 
     @has_ids
+    @token_refresh
     def album(self, album_id):
         """
         Get album information
@@ -51,6 +52,7 @@ class Spotify(SpotifyBase):
         return result
 
     @has_ids
+    @token_refresh
     def artist(self, artist_id):
         """
         Get artist information.
@@ -66,6 +68,7 @@ class Spotify(SpotifyBase):
         return result
 
     @has_ids
+    @token_refresh
     def artists(self, artist_ids):
         """
         Get several artists information.
@@ -97,6 +100,7 @@ class Spotify(SpotifyBase):
         return results
 
     @has_ids
+    @token_refresh
     def related_artists(self, artist_id):
         """
         Get information about 20 related artists to a given artist.
@@ -115,6 +119,7 @@ class Spotify(SpotifyBase):
         return results
 
     @has_ids
+    @token_refresh
     def artist_top_tracks(self, artist_id, county_code=None):
         """
         Get information about an artist's top tracks.
@@ -144,8 +149,8 @@ class Spotify(SpotifyBase):
             results.append(converter(result))
         return results
 
-
     @has_ids
+    @token_refresh
     def track(self, track_id):
         """
         Get track information.
@@ -161,6 +166,7 @@ class Spotify(SpotifyBase):
         return result
 
     @has_ids
+    @token_refresh
     def audio_feature(self, track_id):
         """
         Get audio feature for track.
@@ -195,6 +201,7 @@ class Spotify(SpotifyBase):
             return SearchResultDetail(response[key])
         return None
 
+    @token_refresh
     def search(self, q='', search_types=SEARCH_TYPES, market=None, limit=20, offset=0):
         """
         Get information about artists, albums, tracks, playlist with match a keyword string.
@@ -215,7 +222,7 @@ class Spotify(SpotifyBase):
 
         # validate search_types
         if not hasattr(search_types, '__iter__'):
-            raise QueryValidationError('search_types must be iterable object.')
+            raise QueryValidationError('search_types must be iterable.')
 
         for t in search_types:
             try:
