@@ -5,7 +5,6 @@ from .errors import SpotifyIdsNotAssignedError, QueryValidationError
 
 
 def has_ids(func):
-
     def wrapper(self, spotify_ids=None, **kwargs):
         if not spotify_ids:
             raise SpotifyIdsNotAssignedError
@@ -15,7 +14,6 @@ def has_ids(func):
 
 
 def ids_validation(func):
-
     def wrapper(self, ids=None, **kwargs):
         # query validation
         if not isinstance(ids, list):
@@ -30,7 +28,6 @@ def ids_validation(func):
 
 
 def token_refresh(func):
-
     def wrapper(self, *args, **kwargs):
         auth = self.authorization
         if isinstance(auth, AuthorizationCodeFlow):
