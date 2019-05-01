@@ -4,7 +4,7 @@ import urllib.parse
 import urllib.request
 
 from .consts import SEARCH_TYPES
-from .decorators import has_ids, token_refresh
+from .decorators import has_ids, ids_validation, token_refresh
 from .errors import HTTPError, QueryValidationError
 from .models import Album, Artist, Track, AudioFeature, SearchResult, SearchResultDetail
 
@@ -52,6 +52,31 @@ class Spotify(SpotifyBase):
         return result
 
     @has_ids
+    @ids_validation
+    @token_refresh
+    def albums(self, album_ids):
+        """
+        Get several albums information.
+        Endpoint:GET https://api.spotify.com/v1/albums
+        :param album_ids: list of album id. Maximum : 50 IDs
+        :return: list of album objects
+        """
+        endpoint = 'https://api.spotify.com/v1/albums'
+
+        query = {
+            'ids': ','.join(album_ids)
+        }
+
+        data = urllib.parse.urlencode(query)
+        full_url = self.make_full_url(endpoint, data)
+        response = self.get_response(full_url)
+        converter = Album.to_object
+        results = []
+        for result in response['albums']:
+            results.append(converter(result))
+        return results
+
+    @has_ids
     @token_refresh
     def artist(self, artist_id):
         """
@@ -68,23 +93,16 @@ class Spotify(SpotifyBase):
         return result
 
     @has_ids
+    @ids_validation
     @token_refresh
     def artists(self, artist_ids):
         """
         Get several artists information.
         Endpoint:GET https://api.spotify.com/v1/artists
         :param artist_ids: list of artist id. Maximum : 50 IDs
-        :return: iterator of Artist objects
+        :return: list of Artist objects
         """
         endpoint = 'https://api.spotify.com/v1/artists'
-        # query validation
-        if not isinstance(artist_ids, list):
-            raise QueryValidationError('artist ids must be list.')
-        if len(artist_ids) > 50:
-            raise QueryValidationError('Too many ids. Maximum length is 50.')
-        for each in artist_ids:
-            if not isinstance(each, str):
-                raise QueryValidationError('artist id must be str.')
 
         query = {
             'ids': ','.join(artist_ids)
@@ -93,7 +111,7 @@ class Spotify(SpotifyBase):
         data = urllib.parse.urlencode(query)
         full_url = self.make_full_url(endpoint, data)
         response = self.get_response(full_url)
-        converter = Artist.raw_to_object
+        converter = Artist.to_object
         results = []
         for result in response['artists']:
             results.append(converter(result))
@@ -106,13 +124,13 @@ class Spotify(SpotifyBase):
         Get information about 20 related artists to a given artist.
         Endpoint: GET https://api.spotify.com/v1/artists/{id}/related-artists
         :param artist_id:
-        :return: List of Artist objects
+        :return: list of Artist objects
         """
         endpoint = 'https://api.spotify.com/v1/artists/{artist_id}/related-artists'.format(
             artist_id=artist_id
         )
         response = self.get_response(endpoint)
-        converter = Artist.raw_to_object
+        converter = Artist.to_object
         results = []
         for result in response['artists']:
             results.append(converter(result))
@@ -126,7 +144,7 @@ class Spotify(SpotifyBase):
         Endpoint: GET https://api.spotify.com/v1/artists/{id}/top-tracks
         :param artist_id:
         :param county_code: ISO 3166-1 alpha-2 country code
-        :return: iterator of Track objects
+        :return: list of Track objects
         """
         endpoint = 'https://api.spotify.com/v1/artists/{artist_id}/top-tracks'.format(
             artist_id=artist_id
@@ -143,7 +161,7 @@ class Spotify(SpotifyBase):
         data = urllib.parse.urlencode(query)
         full_url = self.make_full_url(endpoint, data)
         response = self.get_response(full_url)
-        converter = Track.raw_to_object
+        converter = Track.to_object
         results = []
         for result in response['tracks']:
             results.append(converter(result))
