@@ -1,6 +1,7 @@
 import datetime
 
 from .consts import RESULT_TYPES, PITCH_CLASS
+from .util import get_response
 
 
 class ObjectBase:
@@ -8,7 +9,7 @@ class ObjectBase:
         self.raw = raw_json
 
     @property
-    def as_json(self):
+    def as_dict(self):
         return self.raw
 
     @classmethod
@@ -91,6 +92,11 @@ class SimplifiedAlbum(SimplifiedObjectBase):
 
 class Album(SimplifiedAlbum):
 
+    def __init__(self, raw_json, auth):
+        super(Album, self).__init__(raw_json)
+        self.auth = auth
+        self.tracks = Paging(self.raw['tracks'], SimplifiedTrack, self.auth)
+
     @property
     def copyrights(self):
         copyrights = []
@@ -110,12 +116,6 @@ class Album(SimplifiedAlbum):
     @property
     def popularity(self):
         return self.raw['popularity']
-
-    @property
-    def tracks(self):
-        # return array of simplified tracks inside paging object
-        # TODO: return list of SimplifiedTrack after implement SimplifiedTrack Class.
-        return self.raw['tracks']
 
 
 class AudioFeature(ObjectBase):
@@ -217,16 +217,13 @@ class SimplifiedArtist(SimplifiedObjectBase):
 
 class Artist(SimplifiedArtist):
 
-    @property
     def followers(self):
         followers = self.raw['followers']
-        return followers['total']
-
-    @property
-    def followers_href(self):
         # href is always set to null as the Spotify Web API does not support it at the moment.
-        followers = self.raw['followers']
-        return followers['href'] if followers['href'] != 'null' else None
+        return {
+            'href': followers['href'] if followers['href'] != 'null' else None,
+            'total': followers['total']
+        }
 
     @property
     def genres(self):
@@ -379,58 +376,144 @@ class TrackLink:
 
 
 class SearchResult:
-    def __init__(self, q, search_type, result_json):
+    def __init__(self, q, search_type, result_json, auth):
         self.q = q
         self.search_type = search_type
         self.raw = result_json
+        self.auth = auth
+        self.albums = Paging(
+            self.raw[RESULT_TYPES['album']],
+            SimplifiedAlbum,
+            self.auth) if 'album' in self.search_type else None
+        self.artists = Paging(
+            self.raw[RESULT_TYPES['artist']],
+            Artist,
+            self.auth) if 'artist' in self.search_type else None
+        self.playlists = Paging(
+            self.raw[RESULT_TYPES['playlist']],
+            SimplifiedPlaylist,
+            self.auth) if 'playlist' in self.search_type else None
+        self.tracks = Paging(
+            self.raw[RESULT_TYPES['track']],
+            Track,
+            self.auth) if 'track' in self.search_type else None
 
     def __str__(self):
         return 'Query:{q} Result:{search_type}'.format(q=self.q, search_type=self.search_type)
 
-    @property
-    def albums(self):
-        if 'album' in self.search_type:
-            return SearchResultDetail(self.raw[RESULT_TYPES['album']])
+
+class Paging:
+    def __init__(self, raw_json, klass, auth):
+        self.href = raw_json['href']
+        self.klass = klass
+        self.auth = auth
+        self.items = self.__items__(raw_json)
+        self.limit = raw_json['limit']
+        self.next = raw_json['next']
+        self.offset = raw_json['offset']
+        self.previous = raw_json['previous']
+        self.total = raw_json['total']
+
+    def __paging__(self, url):
+        response = get_response(self.auth, url)
+        page = Paging(response, self.klass, self.auth)
+        self.href = response['href']
+        self.items = self.__items__(response)
+        self.next = response['next']
+        self.previous = response['previous']
+        return page
+
+    def __items__(self, response):
+        if response:
+            return [self.klass.to_object(item) for item in response['items']]
         return None
 
-    @property
-    def artists(self):
-        if 'artist' in self.search_type:
-            return SearchResultDetail(self.raw[RESULT_TYPES['artist']], Artist)
+    def get_next(self):
+        if self.next:
+            return self.__paging__(self.next)
         return None
 
-    @property
-    def playlists(self):
-        if 'playlist' in self.search_type:
-            return SearchResultDetail(self.raw[RESULT_TYPES['playlist']])
+    def get_previous(self):
+        if self.previous:
+            return self.__paging__(self.previous)
         return None
+
+
+class User:
+    def __init__(self, raw_json):
+        self.raw = raw_json
+
+    @property
+    def external_urls(self):
+        return self.raw['external_urls']['spotify']
+
+    @property
+    def followers(self):
+        followers = self.raw['followers']
+        # href is always set to null as the Spotify Web API does not support it at the moment.
+        return {
+            'href': followers['href'] if followers['href'] != 'null' else None,
+            'total': followers['total']
+        }
+
+    @property
+    def href(self):
+        return self.raw['href']
+
+    @property
+    def user_id(self):
+        return self.raw['id']
+
+    @property
+    def images(self):
+        images = []
+        converter = Image.convert_to_image
+        for image in self.raw['images']:
+            images.append(converter(image))
+        return images
+
+    @property
+    def obj_type(self):
+        return self.raw['type']
+
+    @property
+    def uri(self):
+        return self.raw['uri']
+
+
+class SimplifiedPlaylist(SimplifiedObjectBase):
+
+    @property
+    def collaborative(self):
+        return self.raw['collaborative']
+
+    @property
+    def playlist_id(self):
+        return self.raw['id']
+
+    @property
+    def images(self):
+        images = []
+        converter = Image.convert_to_image
+        for image in self.raw['images']:
+            images.append(converter(image))
+        return images
+
+    @property
+    def owner(self):
+        return User(self.raw['owner'])
+
+    @property
+    def public(self):
+        return self.raw['public']
+
+    @property
+    def snapshot_id(self):
+        return self.raw['snapshot_id']
 
     @property
     def tracks(self):
-        if 'track' in self.search_type:
-            return SearchResultDetail(self.raw[RESULT_TYPES['track']])
-        return None
-
-
-# TODO: add next() and previous() as property.
-class SearchResultDetail:
-    def __init__(self, result_json, klass=None):
-        self.href = result_json['href']
-        self.limit = result_json['limit']
-        self.offset = result_json['offset']
-        self.previous = result_json['previous']
-        self.next = result_json['next']
-        self.total = result_json['total']
-        self.raw = result_json
-        self.__klass = klass
-
-    def __str__(self):
-        return self.href
-
-    @property
-    def items(self):
-        for item in self.raw['items']:
-            if self.__klass:
-                yield self.__klass(item)
-            else:
-                yield item
+        return {
+            'href': self.raw['tracks']['href'],
+            'total': self.raw['tracks']['total']
+        }
