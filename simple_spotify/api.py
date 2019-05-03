@@ -1,9 +1,9 @@
 import urllib.parse
 
 from .consts import SEARCH_TYPES
-from .decorators import has_ids, ids_validation, token_refresh
+from .decorators import id_validation, ids_validation, token_refresh
 from .errors import QueryValidationError
-from .models import Album, Artist, SimplifiedTrack, Track, AudioFeature, SearchResult, Paging
+from .models import Album,SimplifiedAlbum, Artist, SimplifiedTrack, Track, AudioFeature, SearchResult, Paging
 from .util import get_response
 
 
@@ -22,7 +22,7 @@ class SpotifyBase:
 
 class Spotify(SpotifyBase):
 
-    @has_ids
+    @id_validation
     @token_refresh
     def album(self, album_id):
         """
@@ -38,7 +38,7 @@ class Spotify(SpotifyBase):
         result = Album(response, self.authorization)
         return result
 
-    @has_ids
+    @id_validation
     @token_refresh
     def albums_tracks(self, album_id, limit=20, offset=0, market=None):
         """
@@ -76,7 +76,6 @@ class Spotify(SpotifyBase):
         response = get_response(self.authorization, full_url)
         return Paging(response, SimplifiedTrack, self.authorization)
 
-    @has_ids
     @ids_validation
     @token_refresh
     def albums(self, album_ids):
@@ -101,7 +100,7 @@ class Spotify(SpotifyBase):
             results.append(converter(result))
         return results
 
-    @has_ids
+    @id_validation
     @token_refresh
     def artist(self, artist_id):
         """
@@ -117,7 +116,6 @@ class Spotify(SpotifyBase):
         result = Artist(response)
         return result
 
-    @has_ids
     @ids_validation
     @token_refresh
     def artists(self, artist_ids):
@@ -142,7 +140,45 @@ class Spotify(SpotifyBase):
             results.append(converter(result))
         return results
 
-    @has_ids
+    @id_validation
+    @token_refresh
+    def artist_albums(self, artist_id, limit=20, offset=0, country=None):
+        """
+        Get information about artist's albums
+        Endpoint: GET https://api.spotify.com/v1/artists/{id}/albums
+        :param limit: maximum number of results to return. Default 20. min 1, max 50.
+        :param offset: The index of the first result to return. Default 0. max 10,000.
+        :param country: ISO 3166-1 alpha-2 country code
+        :return: paging object with SimplifiedAlbum objects.
+        """
+        endpoint = 'https://api.spotify.com/v1/artists/{id}/albums'.format(
+            id=artist_id
+        )
+        # validate limit
+        if not isinstance(limit, int):
+            raise QueryValidationError('limit must be int.')
+        if limit > 50:
+            limit = 50
+
+        # validate offset
+        if not isinstance(offset, int):
+            raise QueryValidationError('offset must be int.')
+        if offset > 10000:
+            offset = 10000
+
+        queries = {
+            'limit': limit,
+            'offset': offset
+        }
+        if country:
+            queries['market'] = country
+
+        data = urllib.parse.urlencode(queries)
+        full_url = self.make_full_url(endpoint, data)
+        response = get_response(self.authorization, full_url)
+        return Paging(response, SimplifiedAlbum, self.authorization)
+
+    @id_validation
     @token_refresh
     def related_artists(self, artist_id):
         """
@@ -161,7 +197,7 @@ class Spotify(SpotifyBase):
             results.append(converter(result))
         return results
 
-    @has_ids
+    @id_validation
     @token_refresh
     def artist_top_tracks(self, artist_id, county_code=None):
         """
@@ -192,7 +228,7 @@ class Spotify(SpotifyBase):
             results.append(converter(result))
         return results
 
-    @has_ids
+    @id_validation
     @token_refresh
     def track(self, track_id):
         """
@@ -208,7 +244,7 @@ class Spotify(SpotifyBase):
         result = Track(response)
         return result
 
-    @has_ids
+    @id_validation
     @token_refresh
     def audio_feature(self, track_id):
         """
