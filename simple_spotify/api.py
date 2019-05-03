@@ -146,6 +146,7 @@ class Spotify(SpotifyBase):
         """
         Get information about artist's albums
         Endpoint: GET https://api.spotify.com/v1/artists/{id}/albums
+        :param artist_id:
         :param limit: maximum number of results to return. Default 20. min 1, max 50.
         :param offset: The index of the first result to return. Default 0. max 10,000.
         :param country: ISO 3166-1 alpha-2 country code
