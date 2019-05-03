@@ -269,12 +269,33 @@ class Spotify(SpotifyBase):
         :param track_id:
         :return: AudioFeature object
         """
-        endpoint = 'https://api.spotify.com/v1/audio-features/{track_id}'.format(
-            track_id=track_id
+        endpoint = 'https://api.spotify.com/v1/audio-features/{id}'.format(
+            id=track_id
         )
         response = get_response(self.authorization, endpoint)
         result = AudioFeature(response)
         return result
+
+    @ids_validation(100)
+    @token_refresh
+    def audio_features(self, track_ids):
+        """
+        Get several audio features
+        :param track_ids: list of track id. maximum length is 100
+        :return: list of AudioFeature object
+        """
+        endpoint = 'https://api.spotify.com/v1/audio-features/'
+        query = {
+            'ids': ','.join(track_ids)
+        }
+        data = urllib.parse.urlencode(query)
+        full_url = self.make_full_url(endpoint, data)
+        response = get_response(self.authorization, full_url)
+        converter = AudioFeature.to_object
+        results = []
+        for result in response['audio_features']:
+            results.append(converter(result))
+        return results
 
     @token_refresh
     def search(self, q='', search_types=SEARCH_TYPES, market=None, limit=20, offset=0):
