@@ -76,7 +76,7 @@ class Spotify(SpotifyBase):
         response = get_response(self.authorization, full_url)
         return Paging(response, SimplifiedTrack, self.authorization)
 
-    @ids_validation
+    @ids_validation(50)
     @token_refresh
     def albums(self, album_ids):
         """
@@ -116,7 +116,7 @@ class Spotify(SpotifyBase):
         result = Artist(response)
         return result
 
-    @ids_validation
+    @ids_validation(50)
     @token_refresh
     def artists(self, artist_ids):
         """

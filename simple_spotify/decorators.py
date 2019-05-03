@@ -15,17 +15,19 @@ def id_validation(func):
     return wrapper
 
 
-def ids_validation(func):
-    def wrapper(self, ids=None, **kwargs):
-        if not isinstance(ids, list):
-            raise QueryValidationError('IDs must be list.')
-        if len(ids) > 50:
-            raise QueryValidationError('Too many ids. Maximum length is 50.')
-        for each in ids:
-            if not isinstance(each, str):
-                raise QueryValidationError('ID must be str.')
-        return func(self, ids, **kwargs)
-    return wrapper
+def ids_validation(count):
+    def _validate(func):
+        def wrapper(self, ids=None, **kwargs):
+            if not isinstance(ids, list):
+                raise QueryValidationError('IDs must be list.')
+            if len(ids) > count:
+                raise QueryValidationError('Too many ids. Maximum length is .'.format(count))
+            for each in ids:
+                if not isinstance(each, str):
+                    raise QueryValidationError('ID must be str.')
+            return func(self, ids, **kwargs)
+        return wrapper
+    return _validate
 
 
 def token_refresh(func):
