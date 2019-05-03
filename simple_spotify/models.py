@@ -483,6 +483,9 @@ class User:
 
 class SimplifiedPlaylist(SimplifiedObjectBase):
 
+    def __str__(self):
+        return self.playlist_id
+
     @property
     def collaborative(self):
         return self.raw['collaborative']
@@ -517,3 +520,26 @@ class SimplifiedPlaylist(SimplifiedObjectBase):
             'href': self.raw['tracks']['href'],
             'total': self.raw['tracks']['total']
         }
+
+
+class Playlist(SimplifiedPlaylist):
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def description(self):
+        return self.raw['description']
+
+    @property
+    def followers(self):
+        followers = self.raw['followers']
+        # href is always set to null as the Spotify Web API does not support it at the moment.
+        return {
+            'href': followers['href'] if followers['href'] != 'null' else None,
+            'total': followers['total']
+        }
+
+    @property
+    def name(self):
+        return self.raw['name']
