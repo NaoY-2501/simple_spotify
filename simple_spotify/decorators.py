@@ -1,21 +1,22 @@
 from datetime import datetime, timedelta
 
 from .authorization import AuthorizationCodeFlow
-from .errors import SpotifyIdsNotAssignedError, QueryValidationError
+from .errors import SpotifyIdsNotAssignedError, QueryValidationError, PathParameterError
 
 
-def has_ids(func):
-    def wrapper(self, spotify_ids=None, **kwargs):
-        if not spotify_ids:
+def id_validation(func):
+    def wrapper(self, path_param=None, **kwargs):
+        if not path_param:
             raise SpotifyIdsNotAssignedError
-        result = func(self, spotify_ids, **kwargs)
+        if not isinstance(path_param, str):
+            raise PathParameterError('ID must be str')
+        result = func(self, path_param, **kwargs)
         return result
     return wrapper
 
 
 def ids_validation(func):
     def wrapper(self, ids=None, **kwargs):
-        # query validation
         if not isinstance(ids, list):
             raise QueryValidationError('IDs must be list.')
         if len(ids) > 50:
