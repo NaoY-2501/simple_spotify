@@ -245,6 +245,28 @@ class Spotify(SpotifyBase):
         result = Track(response)
         return result
 
+    @ids_validation(50)
+    @token_refresh
+    def tracks(self, track_ids):
+        """
+        Get several track informations.
+        Endpoint: GET https://api.spotify.com/v1/tracks
+        :param track_ids: list of track id. maximum length is 50.
+        :return: list of Track object
+        """
+        endpoint = 'https://api.spotify.com/v1/tracks'
+        query = {
+            'ids': ','.join(track_ids)
+        }
+        data = urllib.parse.urlencode(query)
+        full_url = self.make_full_url(endpoint, data)
+        response = get_response(self.authorization, full_url)
+        converter = Track.to_object
+        results = []
+        for result in response['tracks']:
+            results.append(converter(result))
+        return results
+
     @id_validation
     @token_refresh
     def audio_analysis(self, track_id):
