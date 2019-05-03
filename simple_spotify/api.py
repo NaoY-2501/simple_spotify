@@ -3,7 +3,8 @@ import urllib.parse
 from .consts import SEARCH_TYPES
 from .decorators import id_validation, ids_validation, token_refresh
 from .errors import QueryValidationError
-from .models import Album, SimplifiedAlbum, Artist, SimplifiedTrack, Track, AudioFeature, SearchResult, Paging, AudioAnalysis
+from .models import Album, SimplifiedAlbum, Artist, SimplifiedTrack, Track, \
+    AudioFeature, AudioAnalysis, SearchResult, Paging
 from .util import get_response
 
 
