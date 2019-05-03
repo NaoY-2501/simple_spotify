@@ -3,7 +3,7 @@ import urllib.parse
 from .consts import SEARCH_TYPES
 from .decorators import id_validation, ids_validation, token_refresh
 from .errors import QueryValidationError
-from .models import Album,SimplifiedAlbum, Artist, SimplifiedTrack, Track, AudioFeature, SearchResult, Paging
+from .models import Album, SimplifiedAlbum, Artist, SimplifiedTrack, Track, AudioFeature, SearchResult, Paging, AudioAnalysis
 from .util import get_response
 
 
@@ -243,6 +243,22 @@ class Spotify(SpotifyBase):
         )
         response = get_response(self.authorization, endpoint)
         result = Track(response)
+        return result
+
+    @id_validation
+    @token_refresh
+    def audio_analysis(self, track_id):
+        """
+        Get audio feature for track.
+        Endpoint: Get https://api.spotify.com/v1/audio-analysis/{id}
+        :param track_id:
+        :return: AudioAnalysis object
+        """
+        endpoint = 'https://api.spotify.com/v1/audio-analysis/{id}'.format(
+            id=track_id
+        )
+        response = get_response(self.authorization, endpoint)
+        result = AudioAnalysis(response)
         return result
 
     @id_validation

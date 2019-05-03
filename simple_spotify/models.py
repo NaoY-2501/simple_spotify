@@ -543,3 +543,131 @@ class Playlist(SimplifiedPlaylist):
     @property
     def name(self):
         return self.raw['name']
+
+
+class AudioAnalysis(ObjectBase):
+    @property
+    def bars(self):
+        return [TimeInterval(bar) for bar in self.raw['bars']]
+
+    @property
+    def beats(self):
+        return [TimeInterval(beat) for beat in self.raw['beats']]
+
+    @property
+    def sections(self):
+        return [Section(section) for section in self.raw['sections']]
+
+    @property
+    def segments(self):
+        return [Segment(segment) for segment in self.raw['segments']]
+
+    @property
+    def tatums(self):
+        return [TimeInterval(tatum) for tatum in self.raw['tatums']]
+
+
+class TimeInterval(ObjectBase):
+    @property
+    def start(self):
+        return self.raw['start']
+
+    @property
+    def duration(self):
+        return self.raw['duration']
+
+    @property
+    def confidence(self):
+        return self.raw['confidence']
+
+
+class Section(ObjectBase):
+    @property
+    def start(self):
+        return self.raw['start']
+
+    @property
+    def duration(self):
+        return self.raw['duration']
+
+    @property
+    def confidence(self):
+        return self.raw['confidence']
+
+    @property
+    def loudness(self):
+        return self.raw['loudness']
+
+    @property
+    def tempo(self):
+        return self.raw['tempo']
+
+    @property
+    def tempo_confidence(self):
+        return self.raw['tempo_confidence']
+
+    @property
+    def key(self):
+        return self.raw['key']
+
+    @property
+    def key_str(self):
+        return PITCH_CLASS.get(self.key)
+
+    @property
+    def key_confidence(self):
+        return self.raw['key_confidence']
+
+    @property
+    def mode(self):
+        return self.raw['mode']
+
+    @property
+    def mode_confidence(self):
+        return self.raw['mode_confidence']
+
+    @property
+    def time_signature(self):
+        return self.raw['time_signature']
+
+    @property
+    def time_signature_confidence(self):
+        return self.raw['time_signature_confidence']
+
+
+class Segment(ObjectBase):
+    @property
+    def start(self):
+        return self.raw['start']
+
+    @property
+    def duration(self):
+        return self.raw['duration']
+
+    @property
+    def confidence(self):
+        return self.raw['confidence']
+
+    @property
+    def loudness_start(self):
+        return self.raw['loudness_start']
+
+    @property
+    def loudness_max(self):
+        return self.raw['loudness_max']
+
+    @property
+    def loudness_max_time(self):
+        return self.raw['loudness_max_time']
+
+    @property
+    def loudness_end(self):
+        return self.raw['loudness_end']
+
+    @property
+    def pitches(self):
+        return self.raw['pitches']
+
+    @property
+    def timbre(self):
+        return self.raw['timbre']
