@@ -23,7 +23,7 @@ class SpotifyBase:
 
 class Spotify(SpotifyBase):
 
-    @id_validation
+    @id_validation('album id')
     @token_refresh
     def album(self, album_id):
         """
@@ -39,7 +39,7 @@ class Spotify(SpotifyBase):
         result = Album(response, self.authorization)
         return result
 
-    @id_validation
+    @id_validation('album id')
     @token_refresh
     def albums_tracks(self, album_id, limit=20, offset=0, market=None):
         """
@@ -101,7 +101,7 @@ class Spotify(SpotifyBase):
             results.append(converter(result))
         return results
 
-    @id_validation
+    @id_validation('artist id')
     @token_refresh
     def artist(self, artist_id):
         """
@@ -141,7 +141,7 @@ class Spotify(SpotifyBase):
             results.append(converter(result))
         return results
 
-    @id_validation
+    @id_validation('artist id')
     @token_refresh
     def artist_albums(self, artist_id, limit=20, offset=0, country=None):
         """
@@ -180,7 +180,7 @@ class Spotify(SpotifyBase):
         response = get_response(self.authorization, full_url)
         return Paging(response, SimplifiedAlbum, self.authorization)
 
-    @id_validation
+    @id_validation('artist id')
     @token_refresh
     def related_artists(self, artist_id):
         """
@@ -199,7 +199,7 @@ class Spotify(SpotifyBase):
             results.append(converter(result))
         return results
 
-    @id_validation
+    @id_validation('artist id')
     @token_refresh
     def artist_top_tracks(self, artist_id, county_code=None):
         """
@@ -230,7 +230,7 @@ class Spotify(SpotifyBase):
             results.append(converter(result))
         return results
 
-    @id_validation
+    @id_validation('track id')
     @token_refresh
     def track(self, track_id):
         """
@@ -268,7 +268,7 @@ class Spotify(SpotifyBase):
             results.append(converter(result))
         return results
 
-    @id_validation
+    @id_validation('track id')
     @token_refresh
     def audio_analysis(self, track_id):
         """
@@ -284,7 +284,7 @@ class Spotify(SpotifyBase):
         result = AudioAnalysis(response)
         return result
 
-    @id_validation
+    @id_validation('track id')
     @token_refresh
     def audio_feature(self, track_id):
         """
@@ -379,7 +379,7 @@ class Spotify(SpotifyBase):
         results = SearchResult(q, search_types, response, self.authorization)
         return results
 
-    @id_validation
+    @id_validation('type')
     @auth_validation(['user-top-read'])
     @token_refresh
     def users_top(self, entity_type, limit=20, offset=0, time_range='medium_term'):

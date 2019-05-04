@@ -4,7 +4,7 @@ from .authorization import AuthorizationCodeFlow
 from .errors import PathParameterNotAssignedError, ValidationError, PathParameterError
 
 
-def id_validation(param='ID'):
+def id_validation(param):
     def _validate(func):
         def wrapper(self, path_param=None, **kwargs):
             if not path_param:
