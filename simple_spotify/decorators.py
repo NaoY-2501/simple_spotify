@@ -46,15 +46,16 @@ def token_refresh(func):
     return wrapper
 
 
-def auth_validation(scope):
+def auth_validation(scopes):
     def _validate(func):
         def wrapper(self, *args, **kwargs):
             if isinstance(self.authorization, AuthorizationCodeFlow):
                 raise ValidationError('This endpoint is only for AuthorizationCodeFlow')
-            if scope not in self.authorization.scope:
-                raise ValidationError("Your authorization's scope does not have {scope}".format(
-                    scope=scope
-                ))
-            return func(self, *args, **kwargs)
+            for scope in scopes:
+                if scope in self.authorization.scope:
+                    return func(self, *args, **kwargs)
+            raise ValidationError("Your authorization's scope does not have {scope}".format(
+                scope=','.join(scopes)
+            ))
         return wrapper
     return _validate
