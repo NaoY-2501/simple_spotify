@@ -425,6 +425,7 @@ class Spotify(SpotifyBase):
         return Paging(response, klass, self.authorization)
 
     @auth_validation(['user-read-email', 'user-read-private', 'user-read-birthdate'])
+    @token_refresh
     def current_user_profile(self):
         """
         Endpoint: GET https://api.spotify.com/v1/me
@@ -433,3 +434,5 @@ class Spotify(SpotifyBase):
         endpoint = 'https://api.spotify.com/v1/me'
         response = get_response(self.authorization, endpoint)
         return PrivateUser(response)
+
+
