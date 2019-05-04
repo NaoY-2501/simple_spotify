@@ -10,7 +10,7 @@ class HTTPError(Exception):
         )
 
 
-class QueryValidationError(Exception):
+class ValidationError(Exception):
     def __init__(self, reason):
         self.reason = reason
 
@@ -18,9 +18,9 @@ class QueryValidationError(Exception):
         return self.reason
 
 
-class SpotifyIdsNotAssignedError(Exception):
+class PathParameterNotAssignedError(Exception):
     def __init__(self):
-        self.reason = 'Spotify ID is not assigned.'
+        self.reason = 'Path parameter is not assigned.'
 
     def __str__(self):
         return self.reason

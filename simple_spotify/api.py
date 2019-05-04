@@ -1,8 +1,8 @@
 import urllib.parse
 
-from .consts import SEARCH_TYPES
-from .decorators import id_validation, ids_validation, token_refresh
-from .errors import QueryValidationError
+from .consts import SEARCH_TYPES, ENTITY_TYPES, ENTITY_CLASS, TIME_RANGES
+from .decorators import id_validation, ids_validation, token_refresh, auth_validation
+from .errors import ValidationError
 from .models import Album, SimplifiedAlbum, Artist, SimplifiedTrack, Track, \
     AudioFeature, AudioAnalysis, SearchResult, Paging
 from .util import get_response
@@ -55,13 +55,13 @@ class Spotify(SpotifyBase):
         )
         # validate limit
         if not isinstance(limit, int):
-            raise QueryValidationError('limit must be int.')
+            raise ValidationError('limit must be int.')
         if limit > 50:
             limit = 50
 
         # validate offset
         if not isinstance(offset, int):
-            raise QueryValidationError('offset must be int.')
+            raise ValidationError('offset must be int.')
         if offset > 10000:
             offset = 10000
 
@@ -158,13 +158,13 @@ class Spotify(SpotifyBase):
         )
         # validate limit
         if not isinstance(limit, int):
-            raise QueryValidationError('limit must be int.')
+            raise ValidationError('limit must be int.')
         if limit > 50:
             limit = 50
 
         # validate offset
         if not isinstance(offset, int):
-            raise QueryValidationError('offset must be int.')
+            raise ValidationError('offset must be int.')
         if offset > 10000:
             offset = 10000
 
@@ -214,9 +214,9 @@ class Spotify(SpotifyBase):
         )
         # coutry_code validation
         if not county_code:
-            raise QueryValidationError('country_code is required parameter.')
+            raise ValidationError('country_code is required parameter.')
         if not isinstance(county_code, str):
-            raise QueryValidationError('country_code must be str.')
+            raise ValidationError('country_code must be str.')
 
         query = {
             'country': county_code
@@ -335,30 +335,30 @@ class Spotify(SpotifyBase):
 
         # validate query
         if not isinstance(q, str):
-            raise QueryValidationError('Query must be str.')
+            raise ValidationError('Query must be str.')
         if not q:
-            raise QueryValidationError('Query is empty.')
+            raise ValidationError('Query is empty.')
 
         # validate search_types
         if not hasattr(search_types, '__iter__'):
-            raise QueryValidationError('search_types must be iterable.')
+            raise ValidationError('search_types must be iterable.')
 
         for t in search_types:
             try:
                 if t.lower() not in SEARCH_TYPES:
-                    raise QueryValidationError('{} is invalid search type.'.format(t))
+                    raise ValidationError('{} is invalid search type.'.format(t))
             except AttributeError:
                 raise AttributeError('Invalid type object in search_types. search_types must be list of string')
 
         # validate limit
         if not isinstance(limit, int):
-            raise QueryValidationError('limit must be int.')
+            raise ValidationError('limit must be int.')
         if limit > 50:
             limit = 50
 
         # validate offset
         if not isinstance(offset, int):
-            raise QueryValidationError('offset must be int.')
+            raise ValidationError('offset must be int.')
         if offset > 10000:
             offset = 10000
 
@@ -378,3 +378,48 @@ class Spotify(SpotifyBase):
         response = get_response(self.authorization, full_url)
         results = SearchResult(q, search_types, response, self.authorization)
         return results
+
+    @id_validation('type')
+    @auth_validation('user-top-read')
+    @token_refresh
+    def users_top(self, entity_type, limit=20, offset=0, time_range='medium_term'):
+        """
+
+        :param entity_type: artists or tracks
+        :param limit: the number of entity to return. maximum is 50.
+        :param offset:
+        :param time_range: over what time frame the affinities are computed.
+               short_term(last 4 weeks), medium_term(last 6 months), long_term(last several years)
+        :return: paging object with Artist object or Track object
+        """
+        endpoint = 'https://api.spotify.com/v1/me/top/{type}'.format(
+            type=entity_type.lower()
+        )
+        # validate type
+        if entity_type.lower() not in ENTITY_TYPES:
+            raise ValidationError('type must be artists or tracks')
+
+        # validate limit
+        if not isinstance(limit, int):
+            raise ValidationError('limit must be int.')
+        if limit > 50:
+            limit = 50
+
+        # validate offset
+        if not isinstance(offset, int):
+            raise ValidationError('offset must be int.')
+
+        # validate time_range
+        if time_range.lower() not in TIME_RANGES:
+            raise ValidationError('time range must be selected from short_term or medium_term or long_term')
+
+        queries = {
+            'limit': limit,
+            'offset': offset,
+            'time_range': time_range
+        }
+        data = urllib.parse.urlencode(queries)
+        full_url = self.make_full_url(endpoint, data)
+        response = get_response(self.authorization, full_url)
+        klass = ENTITY_CLASS[entity_type.lower()]
+        return Paging(response, klass, self.authorization)

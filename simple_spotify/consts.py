@@ -1,3 +1,5 @@
+from .models import Artist, Track
+
 SEARCH_TYPES = ('album', 'artist', 'playlist', 'track')
 
 RESULT_TYPES = {
@@ -21,3 +23,12 @@ PITCH_CLASS = {
     10: 'A#',
     11: 'B',
 }
+
+ENTITY_TYPES = ('artists', 'tracks')
+
+ENTITY_CLASS = {
+    'artists': Artist,
+    'tracks': Track,
+}
+
+TIME_RANGES = ('short_term', 'medium_term', 'long_term')
