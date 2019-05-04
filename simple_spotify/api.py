@@ -1,6 +1,6 @@
 import urllib.parse
 
-from .consts import SEARCH_TYPES, ENTITY_TYPES, ENTITY_CLASS, TIME_RANGES
+from .consts import SEARCH_TYPES, ENTITY_TYPES, TIME_RANGES
 from .decorators import id_validation, ids_validation, token_refresh, auth_validation
 from .errors import ValidationError
 from .models import Album, SimplifiedAlbum, Artist, SimplifiedTrack, Track, \
@@ -379,7 +379,7 @@ class Spotify(SpotifyBase):
         results = SearchResult(q, search_types, response, self.authorization)
         return results
 
-    @id_validation('type')
+    @id_validation
     @auth_validation(['user-top-read'])
     @token_refresh
     def users_top(self, entity_type, limit=20, offset=0, time_range='medium_term'):
@@ -421,7 +421,10 @@ class Spotify(SpotifyBase):
         data = urllib.parse.urlencode(queries)
         full_url = self.make_full_url(endpoint, data)
         response = get_response(self.authorization, full_url)
-        klass = ENTITY_CLASS[entity_type.lower()]
+        if entity_type.lower() == 'artists':
+            klass = Artist
+        elif entity_type.lower() == 'tracks':
+            klass = Track
         return Paging(response, klass, self.authorization)
 
     @auth_validation(['user-read-email', 'user-read-private', 'user-read-birthdate'])
@@ -435,4 +438,16 @@ class Spotify(SpotifyBase):
         response = get_response(self.authorization, endpoint)
         return PrivateUser(response)
 
-
+    @id_validation('user id')
+    @token_refresh
+    def user_profile(self, user_id):
+        """
+        Endpoint: GET https://api.spotify.com/v1/users/{user_id}
+        :param user_id:
+        :return:
+        """
+        endpoint = 'https://api.spotify.com/v1/users/{user_id}'.format(
+            user_id=user_id
+        )
+        response = get_response(self.authorization, endpoint)
+        return PublicUser(response)
