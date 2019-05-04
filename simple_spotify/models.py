@@ -416,6 +416,8 @@ class Paging:
 
     def __paging__(self, url):
         response = get_response(self.auth, url)
+        if self.klass is Category:
+            response = response['categories']
         page = Paging(response, self.klass, self.auth)
         self.href = response['href']
         self.items = self.__items__(response)
@@ -703,3 +705,28 @@ class Segment(ObjectBase):
     @property
     def timbre(self):
         return self.raw['timbre']
+
+
+class Category(ObjectBase):
+    def __str__(self):
+        return self.name
+
+    @property
+    def href(self):
+        return self.raw['href']
+
+    @property
+    def icons(self):
+        icons = []
+        converter = Image.convert_to_image
+        for icon in self.raw['icons']:
+            icons.append(converter(icon))
+        return icons
+
+    @property
+    def category_id(self):
+        return self.raw['id']
+
+    @property
+    def name(self):
+        return self.raw['name']

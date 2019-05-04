@@ -4,7 +4,8 @@ from .consts import SEARCH_TYPES, ENTITY_TYPES, TIME_RANGES
 from .decorators import id_validation, ids_validation, token_refresh, auth_validation
 from .errors import ValidationError
 from .models import Album, SimplifiedAlbum, Artist, SimplifiedTrack, Track, \
-    AudioFeature, AudioAnalysis, SearchResult, Paging, PrivateUser, PublicUser
+    AudioFeature, AudioAnalysis, SearchResult, Paging, PrivateUser, PublicUser, \
+    Category
 from .util import get_response
 
 
@@ -451,3 +452,49 @@ class Spotify(SpotifyBase):
         )
         response = get_response(self.authorization, endpoint)
         return PublicUser(response)
+
+    @id_validation('category id')
+    @token_refresh
+    def category(self, category_id):
+        """
+        Endpoint: GET https://api.spotify.com/v1/browse/categories/{category_id}
+        :param category_id:
+        :return: Category object
+        """
+        endpoint = 'https://api.spotify.com/v1/browse/categories/{category_id}'.format(
+            category_id=category_id
+        )
+        response = get_response(self.authorization, endpoint)
+        result = Category(response)
+        return result
+
+    @token_refresh
+    def categories(self, country=None, locale=None, limit=20, offset=0):
+        """
+        Endpoint: GET https://api.spotify.com/v1/browse/categories
+        :param country:
+        :param locale:
+        :param limit:
+        :param offset:
+        :return: paging object with Category object
+        """
+        endpoint = 'https://api.spotify.com/v1/browse/categories'
+
+        # validate limit
+        if not isinstance(limit, int):
+            raise ValidationError('limit must be int.')
+        if limit > 50:
+            limit = 50
+
+        queries = {
+            'limit': limit,
+            'offset': offset,
+        }
+        if country:
+            queries['country'] = country
+        if locale:
+            queries['locale'] = locale
+        data = urllib.parse.urlencode(queries)
+        full_url = self.make_full_url(endpoint, data)
+        response = get_response(self.authorization, full_url)
+        return Paging(response['categories'], Category, self.authorization)
