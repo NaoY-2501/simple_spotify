@@ -439,9 +439,14 @@ class Paging:
         return None
 
 
-class User:
-    def __init__(self, raw_json):
-        self.raw = raw_json
+class UserBase(ObjectBase):
+
+    def __str__(self):
+        return self.display_name
+
+    @property
+    def display_name(self):
+        return self.raw['display_name']
 
     @property
     def external_urls(self):
@@ -481,6 +486,33 @@ class User:
         return self.raw['uri']
 
 
+class PrivateUser(UserBase):
+
+    @property
+    def birthdate(self):
+        return self.raw.get('birthdate', None)
+
+    @property
+    def country(self):
+        return self.raw.get('country', None)
+
+    @property
+    def display_name(self):
+        return self.raw['display_name']
+
+    @property
+    def email(self):
+        return self.raw.get('email', None)
+
+    @property
+    def product(self):
+        return self.raw.get('product', None)
+
+
+class PublicUser(UserBase):
+    pass
+
+
 class SimplifiedPlaylist(SimplifiedObjectBase):
 
     def __str__(self):
@@ -504,7 +536,7 @@ class SimplifiedPlaylist(SimplifiedObjectBase):
 
     @property
     def owner(self):
-        return User(self.raw['owner'])
+        return PublicUser(self.raw['owner'])
 
     @property
     def public(self):
