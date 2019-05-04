@@ -4,7 +4,7 @@ from .consts import SEARCH_TYPES, ENTITY_TYPES, ENTITY_CLASS, TIME_RANGES
 from .decorators import id_validation, ids_validation, token_refresh, auth_validation
 from .errors import ValidationError
 from .models import Album, SimplifiedAlbum, Artist, SimplifiedTrack, Track, \
-    AudioFeature, AudioAnalysis, SearchResult, Paging
+    AudioFeature, AudioAnalysis, SearchResult, Paging, PrivateUser, PublicUser
 from .util import get_response
 
 
@@ -380,7 +380,7 @@ class Spotify(SpotifyBase):
         return results
 
     @id_validation('type')
-    @auth_validation('user-top-read')
+    @auth_validation(['user-top-read'])
     @token_refresh
     def users_top(self, entity_type, limit=20, offset=0, time_range='medium_term'):
         """
@@ -423,3 +423,13 @@ class Spotify(SpotifyBase):
         response = get_response(self.authorization, full_url)
         klass = ENTITY_CLASS[entity_type.lower()]
         return Paging(response, klass, self.authorization)
+
+    @auth_validation(['user-read-email', 'user-read-private', 'user-read-birthdate'])
+    def current_user_profile(self):
+        """
+        Endpoint: GET https://api.spotify.com/v1/me
+        :return:
+        """
+        endpoint = 'https://api.spotify.com/v1/me'
+        response = get_response(self.authorization, endpoint)
+        return PrivateUser(response)
