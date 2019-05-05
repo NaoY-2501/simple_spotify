@@ -552,6 +552,7 @@ class Spotify(SpotifyBase):
         response = get_response(self.authorization, full_url)
         return RecommendationsResponse(response)
 
+    @token_refresh
     def available_genre_seeds(self):
         """
         Get available genre seeds. Genre seeds use for recommendations.
