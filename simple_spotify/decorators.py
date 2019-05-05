@@ -13,7 +13,9 @@ def id_validation(param):
     def _validate(func):
         def wrapper(self, path_param=None, **kwargs):
             if not path_param:
-                raise PathParameterNotAssignedError
+                raise PathParameterNotAssignedError('{param} is required.'.format(
+                    param=param
+                ))
             if not isinstance(path_param, str):
                 raise PathParameterError('{param} must be str'.format(
                     param=param
