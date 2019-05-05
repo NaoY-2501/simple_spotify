@@ -586,3 +586,39 @@ class Spotify(SpotifyBase):
         full_url = self.make_full_url(endpoint, data)
         response = get_response(self.authorization, full_url)
         return CustomPaging(response, SimplifiedPlaylist, self.authorization, 'playlists')
+
+    @token_refresh
+    def featured_playlists(self, locale=None, country=None, timestamp=None, limit=20, offset=0):
+        """
+        Get featured playlists.
+        Endpoint: https://api.spotify.com/v1/browse/featured-playlists
+        :param locale: ISO 639-1 language code and an uppercase ISO 3166-1 alpha-2 country code. (e.g. ja_JP, en_US)
+        :param country: an ISO 3166-1 alpha-2 country code.
+        :param timestamp: datetime object
+        :param limit: maximum number of results to return. Default 20. min 1, max 50.
+        :param offset: The index of the first result to return. Default 0.
+        :return: pagination object with SimplifiedPlaylist objects
+        """
+        endpoint = 'https://api.spotify.com/v1/browse/featured-playlists'
+
+        # validate limit
+        limit = validate_limit(limit)
+        # validate offset
+        offset = validate_offset(offset)
+        # validate timestamp
+        if timestamp:
+            timestamp = timestamp.strftime('%Y-%m-%dT%H:%M:%S')
+        queries = {
+            'limit': limit,
+            'offset': offset
+        }
+        if locale:
+            queries['locale'] = locale
+        if country:
+            queries['country'] = country
+        if timestamp:
+            queries['timestamp'] = timestamp
+        data = urllib.parse.urlencode(queries)
+        full_url = self.make_full_url(endpoint, data)
+        response = get_response(self.authorization, full_url)
+        return CustomPaging(response, SimplifiedPlaylist, self.authorization, 'playlists')
