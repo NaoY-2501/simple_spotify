@@ -10,7 +10,7 @@ class HTTPError(Exception):
         )
 
 
-class ValidationError(Exception):
+class ExceptionBase(Exception):
     def __init__(self, reason):
         self.reason = reason
 
@@ -18,17 +18,17 @@ class ValidationError(Exception):
         return self.reason
 
 
-class PathParameterNotAssignedError(Exception):
-    def __init__(self):
-        self.reason = 'Path parameter is not assigned.'
-
-    def __str__(self):
-        return self.reason
+class ValidationError(ExceptionBase):
+    pass
 
 
-class PathParameterError(Exception):
-    def __init__(self, reason):
-        self.reason = reason
+class PathParameterNotAssignedError(ExceptionBase):
+    pass
 
-    def __str__(self):
-        return self.reason
+
+class PathParameterError(ExceptionBase):
+    pass
+
+
+class RecommendationAttributeError(ExceptionBase):
+    pass

@@ -25,3 +25,20 @@ PITCH_CLASS = {
 ENTITY_TYPES = ('artists', 'tracks')
 
 TIME_RANGES = ('short_term', 'medium_term', 'long_term')
+
+TUNEABLE_ATTRS = (
+    'acousticness',
+    'danceability',
+    'duration_ms',
+    'energy',
+    'instrumentalness',
+    'key',
+    'liveness',
+    'loudness',
+    'mode',
+    'popularity',
+    'speechiness',
+    'tempo',
+    'time_signature',
+    'valence'
+)

@@ -1,7 +1,12 @@
+import re
+
 from datetime import datetime, timedelta
 
 from .authorization import AuthorizationCodeFlow
-from .errors import PathParameterNotAssignedError, ValidationError, PathParameterError
+from .consts import TUNEABLE_ATTRS
+from .errors import PathParameterNotAssignedError, ValidationError, PathParameterError, RecommendationAttributeError
+
+ATTR_PAT = re.compile(r'(?P<prefix>^[\w]{3}_)(?P<attr>[\w]+)')
 
 
 def id_validation(param):
@@ -59,3 +64,20 @@ def auth_validation(scopes):
             ))
         return wrapper
     return _validate
+
+
+def recommendations_validation(func):
+    def wrapper(self, limit=20, market=None, seed_artists=None, seed_genres=None, seed_tracks=None, **kwargs):
+        tuneable_attrs = locals()['kwargs'].keys()
+        try:
+            attrs = [ATTR_PAT.search(attr).group('attr') for attr in tuneable_attrs]
+            for attr in attrs:
+                if attr not in TUNEABLE_ATTRS:
+                    raise AttributeError
+        except AttributeError:
+            msg = 'Invalid Tuneable attribution: {attrs}'.format(
+                attrs=','.join(list(tuneable_attrs))
+            )
+            raise RecommendationAttributeError(msg)
+        return func(self, limit=limit, market=market, seed_artists=seed_artists, seed_genres=seed_genres, seed_tracks=seed_tracks, **kwargs)
+    return wrapper

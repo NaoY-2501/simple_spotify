@@ -1,11 +1,11 @@
 import urllib.parse
 
 from .consts import SEARCH_TYPES, ENTITY_TYPES, TIME_RANGES
-from .decorators import id_validation, ids_validation, token_refresh, auth_validation
+from .decorators import id_validation, ids_validation, token_refresh, auth_validation, recommendations_validation
 from .errors import ValidationError
 from .models import Album, SimplifiedAlbum, Artist, SimplifiedTrack, Track, \
     AudioFeature, AudioAnalysis, SearchResult, Paging, PrivateUser, PublicUser, \
-    Category
+    Category, RecommendationsResponse
 from .util import get_response
 
 
@@ -498,3 +498,58 @@ class Spotify(SpotifyBase):
         full_url = self.make_full_url(endpoint, data)
         response = get_response(self.authorization, full_url)
         return Paging(response['categories'], Category, self.authorization)
+
+    @recommendations_validation
+    def recommendations(self, limit=20, market=None, seed_artists=None, seed_genres=None, seed_tracks=None, **kwargs):
+        """
+        Recommend tracks. Recommendation are generated based on the given seed entities.
+        Endpoint: GET https://api.spotify.com/v1/recommendations
+        :param limit: Target size of recommendation tracks. maximium 100. Default 20.
+        :param market: Provide this parameter if you want to apply Track Relinking.
+        :param seed_artists: list of Spotify ID for artists.
+               Up to 5 seed values may be in provided in any combinations of seed_artists, seed_genres and seed_tracks.
+        :param seed_genres: list of Spotify ID for genres.
+               You can get list of available genre seeds with available_genre_seeds() method.
+        :param seed_tracks: list of Spotify ID for tracks.
+        :param kwargs: Optional. Multiple values. Tuneable attribute for recommendation.
+        :return: RecommendationsReponse object. It contains recommend tracks and information about seeds.
+        """
+        endpoint = 'https://api.spotify.com/v1/recommendations'
+        # validate seeds length
+        if not seed_artists:
+            seed_artists = []
+        if not seed_genres:
+            seed_genres = []
+        if not seed_tracks:
+            seed_tracks = []
+        if len(seed_artists) + len(seed_genres) + len(seed_tracks) > 5:
+            raise ValidationError('Total length of seed_artists, seed_genres, seed_tracks must be less than 5 or less.')
+        elif len(seed_artists) + len(seed_genres) + len(seed_tracks) == 0:
+            raise ValidationError('Total length of seed_artists, seed_genres, seed_tracks must be up to 5.')
+
+        queries = {
+            'limit': limit,
+        }
+        if market:
+            queries['market'] = market
+        if seed_artists:
+            queries['seed_artists'] = ','.join(seed_artists)
+        if seed_genres:
+            queries['seed_genres'] = ','.join(seed_genres)
+        if seed_tracks:
+            queries['seed_tracks'] = ','.join(seed_tracks)
+        queries.update(**kwargs)
+        data = urllib.parse.urlencode(queries)
+        full_url = self.make_full_url(endpoint, data)
+        response = get_response(self.authorization, full_url)
+        return RecommendationsResponse(response)
+
+    def available_genre_seeds(self):
+        """
+        Get available genre seeds. Genre seeds use for recommendations.
+        Endpoint: GET https://api.spotify.com/v1/recommendations/available-genre-seeds
+        :return: list of available genre seeds
+        """
+        endpoint = 'https://api.spotify.com/v1/recommendations/available-genre-seeds'
+        response = get_response(self.authorization, endpoint)
+        return response['genres']

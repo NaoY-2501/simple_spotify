@@ -730,3 +730,39 @@ class Category(ObjectBase):
     @property
     def name(self):
         return self.raw['name']
+
+
+class RecommendationsResponse(ObjectBase):
+    @property
+    def seeds(self):
+        return [seed for seed in self.raw['seeds']]
+
+    @property
+    def tracks(self):
+        return [SimplifiedTrack.to_object(track) for track in self.raw['tracks']]
+
+
+class RecommendationSeed(ObjectBase):
+    @property
+    def after_filtering_size(self):
+        return self.raw['afterFilteringSize']
+
+    @property
+    def after_relinking_size(self):
+        return self.raw['afterRelinkingSize']
+
+    @property
+    def href(self):
+        return self.raw['href']
+
+    @property
+    def seed_id(self):
+        return self.raw['id']
+
+    @property
+    def initial_pool_size(self):
+        return self.raw['initialPoolSize']
+
+    @property
+    def seed_type(self):
+        return self.raw['type']
