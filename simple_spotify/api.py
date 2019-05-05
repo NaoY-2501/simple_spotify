@@ -25,6 +25,8 @@ class SpotifyBase:
 
 class Spotify(SpotifyBase):
 
+    # Albums
+
     @id_validation('album id')
     @token_refresh
     def album(self, album_id):
@@ -96,6 +98,8 @@ class Spotify(SpotifyBase):
         for result in response['albums']:
             results.append(converter(result))
         return results
+
+    # Artist
 
     @id_validation('artist id')
     @token_refresh
@@ -228,217 +232,7 @@ class Spotify(SpotifyBase):
             results.append(converter(result))
         return results
 
-    @id_validation('track id')
-    @token_refresh
-    def track(self, track_id):
-        """
-        Get track information.
-        Endpoint: GET https://api.spotify.com/v1/tracks/{id}
-        :param track_id:
-        :return: Track object
-        """
-        endpoint = 'https://api.spotify.com/v1/tracks/{track_id}'.format(
-            track_id=track_id
-        )
-        response = get_response(self.authorization, endpoint)
-        result = Track(response)
-        return result
-
-    @ids_validation(50)
-    @token_refresh
-    def tracks(self, track_ids):
-        """
-        Get several track informations.
-        Endpoint: GET https://api.spotify.com/v1/tracks
-        :param track_ids: list of track id. maximum length is 50.
-        :return: list of Track object
-        """
-        endpoint = 'https://api.spotify.com/v1/tracks'
-        query = {
-            'ids': ','.join(track_ids)
-        }
-        data = urllib.parse.urlencode(query)
-        full_url = self.make_full_url(endpoint, data)
-        response = get_response(self.authorization, full_url)
-        converter = Track.to_object
-        results = []
-        for result in response['tracks']:
-            results.append(converter(result))
-        return results
-
-    @id_validation('track id')
-    @token_refresh
-    def audio_analysis(self, track_id):
-        """
-        Get audio feature for track.
-        Endpoint: Get https://api.spotify.com/v1/audio-analysis/{id}
-        :param track_id:
-        :return: AudioAnalysis object
-        """
-        endpoint = 'https://api.spotify.com/v1/audio-analysis/{id}'.format(
-            id=track_id
-        )
-        response = get_response(self.authorization, endpoint)
-        result = AudioAnalysis(response)
-        return result
-
-    @id_validation('track id')
-    @token_refresh
-    def audio_feature(self, track_id):
-        """
-        Get audio feature for track.
-        :param track_id:
-        :return: AudioFeature object
-        """
-        endpoint = 'https://api.spotify.com/v1/audio-features/{id}'.format(
-            id=track_id
-        )
-        response = get_response(self.authorization, endpoint)
-        result = AudioFeature(response)
-        return result
-
-    @ids_validation(100)
-    @token_refresh
-    def audio_features(self, track_ids):
-        """
-        Get several audio features
-        :param track_ids: list of track id. maximum length is 100
-        :return: list of AudioFeature object
-        """
-        endpoint = 'https://api.spotify.com/v1/audio-features/'
-        query = {
-            'ids': ','.join(track_ids)
-        }
-        data = urllib.parse.urlencode(query)
-        full_url = self.make_full_url(endpoint, data)
-        response = get_response(self.authorization, full_url)
-        converter = AudioFeature.to_object
-        results = []
-        for result in response['audio_features']:
-            results.append(converter(result))
-        return results
-
-    @token_refresh
-    def search(self, q='', search_types=SEARCH_TYPES, market=None, limit=20, offset=0):
-        """
-        Get information about artists, albums, tracks, playlist with match a keyword string.
-        :param q: search keyword
-        :param search_types: iterable object contains search type. Default is ['album', 'artist', 'playlist', 'track'].
-        :param market: ISO 3166-1 alpha-2 country code
-        :param limit: maximum number of results to return. Default 20. min 1, max 50.
-        :param offset: The index of the first result to return. Default 0. max 10,000.
-        :return: SearchResult objects or json format dict when raw is True.
-        """
-        endpoint = 'https://api.spotify.com/v1/search'
-
-        # validate query
-        if not isinstance(q, str):
-            raise ValidationError('Query must be str.')
-        if not q:
-            raise ValidationError('Query is empty.')
-
-        # validate search_types
-        if not hasattr(search_types, '__iter__'):
-            raise ValidationError('search_types must be iterable.')
-
-        for t in search_types:
-            try:
-                if t.lower() not in SEARCH_TYPES:
-                    raise ValidationError('{} is invalid search type.'.format(t))
-            except AttributeError:
-                raise AttributeError('Invalid type object in search_types. search_types must be list of string')
-
-        # validate limit
-        limit = validate_limit(limit)
-
-        # validate offset
-        offset = validate_offset(offset, maximum=10000)
-
-        typestring = ','.join([t.lower() for t in search_types])
-
-        queries = {
-            'q': q,
-            'type': typestring,
-            'limit': limit,
-            'offset': offset
-        }
-        if market:
-            queries['market'] = market
-
-        data = urllib.parse.urlencode(queries)
-        full_url = self.make_full_url(endpoint, data)
-        response = get_response(self.authorization, full_url)
-        results = SearchResult(q, search_types, response, self.authorization)
-        return results
-
-    @id_validation('type')
-    @auth_validation(['user-top-read'])
-    @token_refresh
-    def users_top(self, entity_type, limit=20, offset=0, time_range='medium_term'):
-        """
-
-        :param entity_type: artists or tracks
-        :param limit: the number of entity to return. maximum is 50.
-        :param offset:
-        :param time_range: over what time frame the affinities are computed.
-               short_term(last 4 weeks), medium_term(last 6 months), long_term(last several years)
-        :return: paging object with Artist object or Track object
-        """
-        endpoint = 'https://api.spotify.com/v1/me/top/{type}'.format(
-            type=entity_type.lower()
-        )
-        # validate type
-        if entity_type.lower() not in ENTITY_TYPES:
-            raise ValidationError('type must be artists or tracks')
-
-        # validate limit
-        limit = validate_limit(limit)
-
-        # validate offset
-        offset = validate_offset(offset)
-
-        # validate time_range
-        if time_range.lower() not in TIME_RANGES:
-            raise ValidationError('time range must be selected from short_term or medium_term or long_term')
-
-        queries = {
-            'limit': limit,
-            'offset': offset,
-            'time_range': time_range
-        }
-        data = urllib.parse.urlencode(queries)
-        full_url = self.make_full_url(endpoint, data)
-        response = get_response(self.authorization, full_url)
-        if entity_type.lower() == 'artists':
-            klass = Artist
-        elif entity_type.lower() == 'tracks':
-            klass = Track
-        return Paging(response, klass, self.authorization)
-
-    @auth_validation(['user-read-email', 'user-read-private', 'user-read-birthdate'])
-    @token_refresh
-    def current_user_profile(self):
-        """
-        Endpoint: GET https://api.spotify.com/v1/me
-        :return:
-        """
-        endpoint = 'https://api.spotify.com/v1/me'
-        response = get_response(self.authorization, endpoint)
-        return PrivateUser(response)
-
-    @id_validation('user id')
-    @token_refresh
-    def user_profile(self, user_id):
-        """
-        Endpoint: GET https://api.spotify.com/v1/users/{user_id}
-        :param user_id:
-        :return:
-        """
-        endpoint = 'https://api.spotify.com/v1/users/{user_id}'.format(
-            user_id=user_id
-        )
-        response = get_response(self.authorization, endpoint)
-        return PublicUser(response)
+    # Browse
 
     @id_validation('category id')
     @token_refresh
@@ -626,6 +420,8 @@ class Spotify(SpotifyBase):
         response = get_response(self.authorization, full_url)
         return CustomPaging(response, SimplifiedPlaylist, self.authorization, 'playlists')
 
+    # Follow
+
     @auth_validation(['user-follow-read'])
     @ids_validation(50)
     @token_refresh
@@ -706,3 +502,223 @@ class Spotify(SpotifyBase):
         full_url = self.make_full_url(endpoint, data)
         response = get_response(self.authorization, full_url)
         return CursorBasedPaging(response, Artist, self.authorization, 'artists')
+
+    # Personalization
+
+    @id_validation('type')
+    @auth_validation(['user-top-read'])
+    @token_refresh
+    def users_top(self, entity_type, limit=20, offset=0, time_range='medium_term'):
+        """
+
+        :param entity_type: artists or tracks
+        :param limit: the number of entity to return. maximum is 50.
+        :param offset:
+        :param time_range: over what time frame the affinities are computed.
+               short_term(last 4 weeks), medium_term(last 6 months), long_term(last several years)
+        :return: paging object with Artist object or Track object
+        """
+        endpoint = 'https://api.spotify.com/v1/me/top/{type}'.format(
+            type=entity_type.lower()
+        )
+        # validate type
+        if entity_type.lower() not in ENTITY_TYPES:
+            raise ValidationError('type must be artists or tracks')
+
+        # validate limit
+        limit = validate_limit(limit)
+
+        # validate offset
+        offset = validate_offset(offset)
+
+        # validate time_range
+        if time_range.lower() not in TIME_RANGES:
+            raise ValidationError('time range must be selected from short_term or medium_term or long_term')
+
+        queries = {
+            'limit': limit,
+            'offset': offset,
+            'time_range': time_range
+        }
+        data = urllib.parse.urlencode(queries)
+        full_url = self.make_full_url(endpoint, data)
+        response = get_response(self.authorization, full_url)
+        if entity_type.lower() == 'artists':
+            klass = Artist
+        elif entity_type.lower() == 'tracks':
+            klass = Track
+        return Paging(response, klass, self.authorization)
+
+    # Search
+
+    @token_refresh
+    def search(self, q='', search_types=SEARCH_TYPES, market=None, limit=20, offset=0):
+        """
+        Get information about artists, albums, tracks, playlist with match a keyword string.
+        :param q: search keyword
+        :param search_types: iterable object contains search type. Default is ['album', 'artist', 'playlist', 'track'].
+        :param market: ISO 3166-1 alpha-2 country code
+        :param limit: maximum number of results to return. Default 20. min 1, max 50.
+        :param offset: The index of the first result to return. Default 0. max 10,000.
+        :return: SearchResult objects or json format dict when raw is True.
+        """
+        endpoint = 'https://api.spotify.com/v1/search'
+
+        # validate query
+        if not isinstance(q, str):
+            raise ValidationError('Query must be str.')
+        if not q:
+            raise ValidationError('Query is empty.')
+
+        # validate search_types
+        if not hasattr(search_types, '__iter__'):
+            raise ValidationError('search_types must be iterable.')
+
+        for t in search_types:
+            try:
+                if t.lower() not in SEARCH_TYPES:
+                    raise ValidationError('{} is invalid search type.'.format(t))
+            except AttributeError:
+                raise AttributeError('Invalid type object in search_types. search_types must be list of string')
+
+        # validate limit
+        limit = validate_limit(limit)
+
+        # validate offset
+        offset = validate_offset(offset, maximum=10000)
+
+        typestring = ','.join([t.lower() for t in search_types])
+
+        queries = {
+            'q': q,
+            'type': typestring,
+            'limit': limit,
+            'offset': offset
+        }
+        if market:
+            queries['market'] = market
+
+        data = urllib.parse.urlencode(queries)
+        full_url = self.make_full_url(endpoint, data)
+        response = get_response(self.authorization, full_url)
+        results = SearchResult(q, search_types, response, self.authorization)
+        return results
+
+    # Track
+
+    @id_validation('track id')
+    @token_refresh
+    def track(self, track_id):
+        """
+        Get track information.
+        Endpoint: GET https://api.spotify.com/v1/tracks/{id}
+        :param track_id:
+        :return: Track object
+        """
+        endpoint = 'https://api.spotify.com/v1/tracks/{track_id}'.format(
+            track_id=track_id
+        )
+        response = get_response(self.authorization, endpoint)
+        result = Track(response)
+        return result
+
+    @ids_validation(50)
+    @token_refresh
+    def tracks(self, track_ids):
+        """
+        Get several track informations.
+        Endpoint: GET https://api.spotify.com/v1/tracks
+        :param track_ids: list of track id. maximum length is 50.
+        :return: list of Track object
+        """
+        endpoint = 'https://api.spotify.com/v1/tracks'
+        query = {
+            'ids': ','.join(track_ids)
+        }
+        data = urllib.parse.urlencode(query)
+        full_url = self.make_full_url(endpoint, data)
+        response = get_response(self.authorization, full_url)
+        converter = Track.to_object
+        results = []
+        for result in response['tracks']:
+            results.append(converter(result))
+        return results
+
+    @id_validation('track id')
+    @token_refresh
+    def audio_analysis(self, track_id):
+        """
+        Get audio feature for track.
+        Endpoint: Get https://api.spotify.com/v1/audio-analysis/{id}
+        :param track_id:
+        :return: AudioAnalysis object
+        """
+        endpoint = 'https://api.spotify.com/v1/audio-analysis/{id}'.format(
+            id=track_id
+        )
+        response = get_response(self.authorization, endpoint)
+        result = AudioAnalysis(response)
+        return result
+
+    @id_validation('track id')
+    @token_refresh
+    def audio_feature(self, track_id):
+        """
+        Get audio feature for track.
+        :param track_id:
+        :return: AudioFeature object
+        """
+        endpoint = 'https://api.spotify.com/v1/audio-features/{id}'.format(
+            id=track_id
+        )
+        response = get_response(self.authorization, endpoint)
+        result = AudioFeature(response)
+        return result
+
+    @ids_validation(100)
+    @token_refresh
+    def audio_features(self, track_ids):
+        """
+        Get several audio features
+        :param track_ids: list of track id. maximum length is 100
+        :return: list of AudioFeature object
+        """
+        endpoint = 'https://api.spotify.com/v1/audio-features/'
+        query = {
+            'ids': ','.join(track_ids)
+        }
+        data = urllib.parse.urlencode(query)
+        full_url = self.make_full_url(endpoint, data)
+        response = get_response(self.authorization, full_url)
+        converter = AudioFeature.to_object
+        results = []
+        for result in response['audio_features']:
+            results.append(converter(result))
+        return results
+
+    # Users Profile
+
+    @auth_validation(['user-read-email', 'user-read-private', 'user-read-birthdate'])
+    @token_refresh
+    def current_user_profile(self):
+        """
+        Endpoint: GET https://api.spotify.com/v1/me
+        :return:
+        """
+        endpoint = 'https://api.spotify.com/v1/me'
+        response = get_response(self.authorization, endpoint)
+        return PrivateUser(response)
+
+    @id_validation('user id')
+    @token_refresh
+    def user_profile(self, user_id):
+        """
+        Endpoint: GET https://api.spotify.com/v1/users/{user_id}
+        :param user_id:
+        :return:
+        """
+        endpoint = 'https://api.spotify.com/v1/users/{user_id}'.format(
+            user_id=user_id
+        )
+        response = get_response(self.authorization, endpoint)
+        return PublicUser(response)
