@@ -5,7 +5,7 @@ from .decorators import id_validation, ids_validation, token_refresh, auth_valid
 from .errors import ValidationError
 from .models import Album, SimplifiedAlbum, Artist, SimplifiedTrack, Track, \
     AudioFeature, AudioAnalysis, SearchResult, Paging, CustomPaging, PrivateUser, PublicUser, \
-    Category, RecommendationsResponse
+    Category, RecommendationsResponse, SimplifiedPlaylist
 from .util import get_response, validate_limit, validate_offset
 
 
@@ -556,3 +556,33 @@ class Spotify(SpotifyBase):
         full_url = self.make_full_url(endpoint, data)
         response = get_response(self.authorization, full_url)
         return CustomPaging(response, SimplifiedAlbum, self.authorization, 'albums')
+
+    @id_validation('category id')
+    @token_refresh
+    def category_playlists(self, category_id, limit=20, offset=0, country=None):
+        """
+        Endpoint: GET https://api.spotify.com/v1/browse/categories/{category_id}/playlists
+        :param category_id: Spotify category ID (e.g. pop, rock, j_tracks)
+        :param limit: maximum number of results to return. Default 20. min 1, max 50.
+        :param offset: The index of the first result to return. Default 0.
+        :param country: ISO 3166-1 alpha-2 country code
+        :return: pagination object with SimplifiedPlaylist objects
+        """
+        endpoint = 'https://api.spotify.com/v1/browse/categories/{category_id}/playlists'.format(
+            category_id=category_id
+        )
+        # validate limit
+        limit = validate_limit(limit)
+        # validate offset
+        offset = validate_offset(offset)
+
+        queries = {
+            'limit': limit,
+            'offset': offset
+        }
+        if country:
+            queries['country'] = country
+        data = urllib.parse.urlencode(queries)
+        full_url = self.make_full_url(endpoint, data)
+        response = get_response(self.authorization, full_url)
+        return CustomPaging(response, SimplifiedPlaylist, self.authorization, 'playlists')
