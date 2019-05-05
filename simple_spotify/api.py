@@ -625,3 +625,60 @@ class Spotify(SpotifyBase):
         full_url = self.make_full_url(endpoint, data)
         response = get_response(self.authorization, full_url)
         return CustomPaging(response, SimplifiedPlaylist, self.authorization, 'playlists')
+
+    @auth_validation(['user-follow-read'])
+    @ids_validation(50)
+    @token_refresh
+    def check_current_user_follows(self, target_type=None, ids=None):
+        """
+        check current user is following artists or users.
+        Endpoint: GET https://api.spotify.com/v1/me/following/contains
+        :param target_type: 'artist' or 'user'
+        :param ids: IDs of artist or user
+        :return: list of boolean values
+        """
+        endpoint = 'https://api.spotify.com/v1/me/following/contains'
+        # validate target_type
+        if not target_type:
+            ValidationError('target_type is required.')
+        if not isinstance(target_type, str):
+            ValidationError('target_type must be str')
+        if target_type.lower() not in ('artist', 'user'):
+            ValidationError('invalida target_type. Assign artist or user')
+        queries = {
+            'type': target_type,
+            'ids': ','.join(ids)
+        }
+        data = urllib.parse.urlencode(queries)
+        full_url = self.make_full_url(endpoint, data)
+        response = get_response(self.authorization, full_url)
+        return response
+
+    @auth_validation(['playlisy-read-private'])
+    @id_validation('playlist_id')
+    @token_refresh
+    def check_users_follow_playlist(self, playlist_id, ids=None):
+        """
+        check one or more users following playlist
+        Endpoint: GET https://api.spotify.com/v1/playlists/{playlist_id}/followers/contains
+        :param playlist_id: Playlist id
+        :param ids: list of users id
+        :return: list of boolean values
+        """
+        endpoint = 'https://api.spotify.com/v1/playlists/{playlist_id}/followers/contains'.format(
+            playlist_id=playlist_id
+        )
+        # validate ids
+        if not ids:
+            ValidationError('Spotify User IDs is required.')
+        if not isinstance(ids, list):
+            ValidationError('ids must be list')
+        if len(ids) > 5:
+            ValidationError('Length of Spotify User IDs must be less than 5 or less')
+        queries = {
+            'ids': ','.join(ids)
+        }
+        data = urllib.parse.urlencode(queries)
+        full_url = self.make_full_url(endpoint, data)
+        response = get_response(self.authorization, full_url)
+        return response
