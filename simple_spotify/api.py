@@ -4,7 +4,7 @@ from .consts import SEARCH_TYPES, ENTITY_TYPES, TIME_RANGES
 from .decorators import id_validation, ids_validation, token_refresh, auth_validation, recommendations_validation
 from .errors import ValidationError
 from .models import Album, SimplifiedAlbum, Artist, SimplifiedTrack, Track, \
-    AudioFeature, AudioAnalysis, SearchResult, Paging, PrivateUser, PublicUser, \
+    AudioFeature, AudioAnalysis, SearchResult, Paging, CustomPaging, PrivateUser, PublicUser, \
     Category, RecommendationsResponse
 from .util import get_response
 
@@ -505,7 +505,7 @@ class Spotify(SpotifyBase):
         data = urllib.parse.urlencode(queries)
         full_url = self.make_full_url(endpoint, data)
         response = get_response(self.authorization, full_url)
-        return Paging(response['categories'], Category, self.authorization)
+        return CustomPaging(response, Category, self.authorization, 'categories')
 
     @recommendations_validation
     def recommendations(self, limit=20, market=None, seed_artists=None, seed_genres=None, seed_tracks=None, **kwargs):

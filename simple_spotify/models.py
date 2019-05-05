@@ -416,13 +416,51 @@ class Paging:
 
     def __paging__(self, url):
         response = get_response(self.auth, url)
-        if self.klass is Category:
-            response = response['categories']
         page = Paging(response, self.klass, self.auth)
         self.href = response['href']
         self.items = self.__items__(response)
         self.next = response['next']
         self.previous = response['previous']
+        return page
+
+    def __items__(self, response):
+        if response:
+            return [self.klass.to_object(item) for item in response['items']]
+        return None
+
+    def get_next(self):
+        if self.next:
+            return self.__paging__(self.next)
+        return None
+
+    def get_previous(self):
+        if self.previous:
+            return self.__paging__(self.previous)
+        return None
+
+
+class CustomPaging:
+    def __init__(self, raw_json, klass, auth, key):
+        self.message = raw_json.get('message', None)
+        self.key = key
+        self.raw = raw_json[key]
+        self.href = self.raw['href']
+        self.klass = klass
+        self.auth = auth
+        self.items = self.__items__(self.raw)
+        self.limit = self.raw['limit']
+        self.next = self.raw['next']
+        self.offset = self.raw['offset']
+        self.previous = self.raw['previous']
+        self.total = self.raw['total']
+
+    def __paging__(self, url):
+        response = get_response(self.auth, url)
+        page = CustomPaging(response, self.klass, self.auth, self.key)
+        self.href = response[self.key]['href']
+        self.items = self.__items__(response[self.key])
+        self.next = response[self.key]['next']
+        self.previous = response[self.key]['previous']
         return page
 
     def __items__(self, response):
