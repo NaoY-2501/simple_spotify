@@ -144,11 +144,13 @@ class Spotify(SpotifyBase):
 
     @id_validation('artist id')
     @token_refresh
-    def artist_albums(self, artist_id, limit=20, offset=0, country=None):
+    def artist_albums(self, artist_id, include_groups=None, limit=20, offset=0, country=None):
         """
         Get information about artist's albums
         Endpoint: GET https://api.spotify.com/v1/artists/{id}/albums
         :param artist_id:
+        :param include_groups: list of filter the response.
+                               valid values are album, single, appears_on, compilation
         :param limit: maximum number of results to return. Default 20. min 1, max 50.
         :param offset: The index of the first result to return. Default 0. max 10,000.
         :param country: ISO 3166-1 alpha-2 country code
@@ -157,6 +159,10 @@ class Spotify(SpotifyBase):
         endpoint = 'https://api.spotify.com/v1/artists/{id}/albums'.format(
             id=artist_id
         )
+        # validate include_groups
+        if include_groups:
+            if not isinstance(include_groups, list):
+                raise ValidationError('include_groups must be list')
         # validate limit
         if not isinstance(limit, int):
             raise ValidationError('limit must be int.')
@@ -175,6 +181,8 @@ class Spotify(SpotifyBase):
         }
         if country:
             queries['market'] = country
+        if include_groups:
+            queries['include_groups'] = ','.join(include_groups)
 
         data = urllib.parse.urlencode(queries)
         full_url = self.make_full_url(endpoint, data)
