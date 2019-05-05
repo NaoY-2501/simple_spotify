@@ -541,6 +541,11 @@ class Spotify(SpotifyBase):
     @token_refresh
     def new_release(self, country=None, limit=20, offset=0):
         endpoint = 'https://api.spotify.com/v1/browse/new-releases'
+        # validate limit
+        limit = validate_limit(limit)
+        # validate offset
+        offset = validate_offset(offset)
+
         queries = {
             'limit': limit,
             'offset': offset
