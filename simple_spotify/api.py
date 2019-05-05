@@ -6,7 +6,8 @@ from .decorators import id_validation, ids_validation, token_refresh, auth_valid
 from .errors import ValidationError
 from .models import Album, SimplifiedAlbum, Artist, SimplifiedTrack, Track, \
     AudioFeature, AudioAnalysis, SearchResult, Paging, CustomPaging, CursorBasedPaging, \
-    PrivateUser, PublicUser, Category, RecommendationsResponse, SimplifiedPlaylist
+    PrivateUser, PublicUser, Category, RecommendationsResponse, SimplifiedPlaylist, \
+    SavedAlbum, SavedTrack
 from .util import get_response, validate_limit, validate_offset
 
 
@@ -502,6 +503,102 @@ class Spotify(SpotifyBase):
         full_url = self.make_full_url(endpoint, data)
         response = get_response(self.authorization, full_url)
         return CursorBasedPaging(response, Artist, self.authorization, 'artists')
+
+    # Library
+
+    @auth_validation(['user-library-read'])
+    @ids_validation(50)
+    @token_refresh
+    def check_users_saved_albums(self, ids):
+        """
+        Chck albums already saved in the current 'Your Music' library
+        Endpoint: GET https://api.spotify.com/v1/me/albums/contains
+        :param ids: list of Spotify IDs for the albums
+        :return: list of boolean object
+        """
+        endpoint = 'https://api.spotify.com/v1/me/albums/contains'
+        query = {
+            'ids': ','.join(ids)
+        }
+        data = urllib.parse.urlencode(query)
+        full_url = self.make_full_url(endpoint, data)
+        response = get_response(self.authorization, full_url)
+        return response
+
+    @auth_validation(['user-library-read'])
+    @ids_validation(50)
+    @token_refresh
+    def check_users_saved_tracks(self, ids):
+        """
+        Check albums already saved in the current 'Your Music' library
+        Endpoint: GET https://api.spotify.com/v1/me/tracks/contains
+        :param ids: list of Spotify IDs for the tracks
+        :return: list of boolean object
+        """
+        endpoint = 'https://api.spotify.com/v1/me/albums/contains'
+        query = {
+            'ids': ','.join(ids)
+        }
+        data = urllib.parse.urlencode(query)
+        full_url = self.make_full_url(endpoint, data)
+        response = get_response(self.authorization, full_url)
+        return response
+
+    @auth_validation(['user-library-read'])
+    @token_refresh
+    def get_current_users_saved_album(self, limit=20, offset=0, market=None):
+        """
+        Get a list of the albums saved in the current user.
+        Endpoint: GET https://api.spotify.com/v1/me/albums
+        :param limit: the number of entity to return. maximum is 50.
+        :param offset: The index of the first object to return.
+        :param market: an ISO 3166-1 alpha-2 country code.
+        :return: Paging object with Album objects
+        """
+        endpoint = 'https://api.spotify.com/v1/me/albums'
+        # validate limit
+        limit = validate_limit(limit)
+        # validate offset
+        offset = validate_offset(offset)
+
+        queries = {
+            'limit': limit,
+            'offset': offset
+        }
+        if market:
+            queries['market'] = market
+        data = urllib.parse.urlencode(queries)
+        full_url = self.make_full_url(endpoint, data)
+        response = get_response(self.authorization, full_url)
+        return Paging(response, SavedAlbum, self.authorization)
+
+    @auth_validation(['user-library-read'])
+    @token_refresh
+    def get_current_users_saved_track(self, limit=20, offset=0, market=None):
+        """
+        Get a list of the tracks saved in the current user.
+        Endpoint: GET https://api.spotify.com/v1/me/tracks
+        :param limit: The number of entity to return. maximum is 50.
+        :param offset: The index of the first object to return.
+        :param market: an ISO 3166-1 alpha-2 country code.
+        :return: Paging object with Track objects
+        """
+        endpoint = 'https://api.spotify.com/v1/me/tracks'
+        # validate limit
+        limit = validate_limit(limit)
+        # validate offset
+        offset = validate_offset(offset)
+
+        queries = {
+            'limit': limit,
+            'offset': offset
+        }
+        if market:
+            queries['market'] = market
+        data = urllib.parse.urlencode(queries)
+        full_url = self.make_full_url(endpoint, data)
+        response = get_response(self.authorization, full_url)
+        return Paging(response, SavedTrack, self.authorization)
 
     # Personalization
 

@@ -837,3 +837,23 @@ class RecommendationSeed(ObjectBase):
     @property
     def seed_type(self):
         return self.raw['type']
+
+
+class SavedAlbum(ObjectBase):
+    @property
+    def added_at(self):
+        return self.raw['added_at']
+
+    @property
+    def album(self):
+        return Album(self.raw['album'])
+
+
+class SavedTrack(ObjectBase):
+    @property
+    def added_at(self):
+        return self.raw['added_at']
+
+    @property
+    def track(self):
+        return Track(self.raw['track'])
