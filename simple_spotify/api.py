@@ -1,3 +1,4 @@
+import datetime
 import urllib.parse
 
 from .consts import SEARCH_TYPES, ENTITY_TYPES, TIME_RANGES
@@ -607,6 +608,8 @@ class Spotify(SpotifyBase):
         offset = validate_offset(offset)
         # validate timestamp
         if timestamp:
+            if not isinstance(timestamp, datetime.datetime):
+                ValidationError('timestamp must be datetime object')
             timestamp = timestamp.strftime('%Y-%m-%dT%H:%M:%S')
         queries = {
             'limit': limit,
