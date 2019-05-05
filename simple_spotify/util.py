@@ -2,7 +2,7 @@ import json
 import urllib.error
 import urllib.request
 
-from .errors import HTTPError
+from .errors import HTTPError, ValidationError
 
 
 def get_response(authorization, url, data=None):
@@ -15,3 +15,20 @@ def get_response(authorization, url, data=None):
     except urllib.error.HTTPError as e:
         raise HTTPError(e.reason, e.code)
     return response
+
+
+def validate_limit(limit, maximum=50):
+    # validate limit
+    if not isinstance(limit, int):
+        raise ValidationError('limit must be int.')
+    if limit > maximum:
+        limit = maximum
+    return limit
+
+
+def validate_offset(offset, maximum=None):
+    if not isinstance(offset, int):
+        raise ValidationError('offset must be int.')
+    if maximum and offset > maximum:
+        offset = maximum
+    return offset

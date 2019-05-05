@@ -6,7 +6,7 @@ from .errors import ValidationError
 from .models import Album, SimplifiedAlbum, Artist, SimplifiedTrack, Track, \
     AudioFeature, AudioAnalysis, SearchResult, Paging, CustomPaging, PrivateUser, PublicUser, \
     Category, RecommendationsResponse
-from .util import get_response
+from .util import get_response, validate_limit, validate_offset
 
 
 class SpotifyBase:
@@ -55,16 +55,10 @@ class Spotify(SpotifyBase):
             id=album_id
         )
         # validate limit
-        if not isinstance(limit, int):
-            raise ValidationError('limit must be int.')
-        if limit > 50:
-            limit = 50
+        limit = validate_limit(limit)
 
         # validate offset
-        if not isinstance(offset, int):
-            raise ValidationError('offset must be int.')
-        if offset > 10000:
-            offset = 10000
+        offset = validate_offset(offset, maximum=10000)
 
         queries = {
             'limit': limit,
@@ -164,16 +158,10 @@ class Spotify(SpotifyBase):
             if not isinstance(include_groups, list):
                 raise ValidationError('include_groups must be list')
         # validate limit
-        if not isinstance(limit, int):
-            raise ValidationError('limit must be int.')
-        if limit > 50:
-            limit = 50
+        limit = validate_limit(limit)
 
         # validate offset
-        if not isinstance(offset, int):
-            raise ValidationError('offset must be int.')
-        if offset > 10000:
-            offset = 10000
+        offset = validate_offset(offset, maximum=10000)
 
         queries = {
             'limit': limit,
@@ -360,16 +348,10 @@ class Spotify(SpotifyBase):
                 raise AttributeError('Invalid type object in search_types. search_types must be list of string')
 
         # validate limit
-        if not isinstance(limit, int):
-            raise ValidationError('limit must be int.')
-        if limit > 50:
-            limit = 50
+        limit = validate_limit(limit)
 
         # validate offset
-        if not isinstance(offset, int):
-            raise ValidationError('offset must be int.')
-        if offset > 10000:
-            offset = 10000
+        offset = validate_offset(offset, maximum=10000)
 
         typestring = ','.join([t.lower() for t in search_types])
 
@@ -409,14 +391,10 @@ class Spotify(SpotifyBase):
             raise ValidationError('type must be artists or tracks')
 
         # validate limit
-        if not isinstance(limit, int):
-            raise ValidationError('limit must be int.')
-        if limit > 50:
-            limit = 50
+        limit = validate_limit(limit)
 
         # validate offset
-        if not isinstance(offset, int):
-            raise ValidationError('offset must be int.')
+        offset = validate_offset(offset)
 
         # validate time_range
         if time_range.lower() not in TIME_RANGES:
@@ -489,10 +467,7 @@ class Spotify(SpotifyBase):
         endpoint = 'https://api.spotify.com/v1/browse/categories'
 
         # validate limit
-        if not isinstance(limit, int):
-            raise ValidationError('limit must be int.')
-        if limit > 50:
-            limit = 50
+        limit = validate_limit(limit)
 
         queries = {
             'limit': limit,
@@ -562,3 +537,17 @@ class Spotify(SpotifyBase):
         endpoint = 'https://api.spotify.com/v1/recommendations/available-genre-seeds'
         response = get_response(self.authorization, endpoint)
         return response['genres']
+
+    @token_refresh
+    def new_release(self, country=None, limit=20, offset=0):
+        endpoint = 'https://api.spotify.com/v1/browse/new-releases'
+        queries = {
+            'limit': limit,
+            'offset': offset
+        }
+        if country:
+            queries['country'] = country
+        data = urllib.parse.urlencode(queries)
+        full_url = self.make_full_url(endpoint, data)
+        response = get_response(self.authorization, full_url)
+        return CustomPaging(response, SimplifiedAlbum, self.authorization, 'albums')
