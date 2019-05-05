@@ -479,6 +479,39 @@ class CustomPaging:
         return None
 
 
+class CursorBasedPaging:
+    def __init__(self, raw_json, klass, auth, key):
+        self.key = key
+        self.raw = raw_json[key]
+        self.href = self.raw['href']
+        self.klass = klass
+        self.auth = auth
+        self.items = self.__items__(raw_json)
+        self.limit = self.raw['limit']
+        self.next = self.raw['next']
+        self.cursor = {'after': self.raw['cursor']['after']}
+        self.total = self.raw['total']
+
+    def __paging__(self, url):
+        response = get_response(self.auth, url)
+        page = CustomPaging(response, self.klass, self.auth, self.key)
+        self.href = response[self.key]['href']
+        self.items = self.__items__(response[self.key])
+        self.next = response[self.key]['next']
+        self.previous = response[self.key]['previous']
+        return page
+
+    def __items__(self, response):
+        if response:
+            return [self.klass.to_object(item) for item in response['items']]
+        return None
+
+    def get_next(self):
+        if self.next:
+            return self.__paging__(self.next)
+        return None
+
+
 class UserBase(ObjectBase):
 
     def __str__(self):

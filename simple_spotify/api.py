@@ -5,8 +5,8 @@ from .consts import SEARCH_TYPES, ENTITY_TYPES, TIME_RANGES
 from .decorators import id_validation, ids_validation, token_refresh, auth_validation, recommendations_validation
 from .errors import ValidationError
 from .models import Album, SimplifiedAlbum, Artist, SimplifiedTrack, Track, \
-    AudioFeature, AudioAnalysis, SearchResult, Paging, CustomPaging, PrivateUser, PublicUser, \
-    Category, RecommendationsResponse, SimplifiedPlaylist
+    AudioFeature, AudioAnalysis, SearchResult, Paging, CustomPaging, CursorBasedPaging, \
+    PrivateUser, PublicUser, Category, RecommendationsResponse, SimplifiedPlaylist
 from .util import get_response, validate_limit, validate_offset
 
 
@@ -682,3 +682,27 @@ class Spotify(SpotifyBase):
         full_url = self.make_full_url(endpoint, data)
         response = get_response(self.authorization, full_url)
         return response
+
+    @auth_validation(['user-follow-read'])
+    @token_refresh
+    def user_follow_artists(self, limit=20, after=None):
+        """
+        Get the current user's followed artists.
+        Endpoint: GET https://api.spotify.com/v1/me/following?type=artist
+        :param limit: maximum number of results to return. Default 20. min 1, max 50.
+        :param after: The last ID retrieved from the previous request.
+        :return:
+        """
+        endpoint = 'https://api.spotify.com/v1/me/following?type=artist'
+        # validate limit
+        limit = validate_limit(limit)
+
+        queries = {
+            'limit': limit
+        }
+        if after:
+            queries['after'] = after
+        data = urllib.parse.urlencode(queries)
+        full_url = self.make_full_url(endpoint, data)
+        response = get_response(self.authorization, full_url)
+        return CursorBasedPaging(response, Artist, self.authorization, 'artists')
