@@ -14,7 +14,10 @@ def http_request(authorization, url, data=None, method='GET'):
     )
     try:
         with urllib.request.urlopen(req) as res:
-            response = json.loads(res.read().decode('utf-8'))
+            if method == 'GET':
+                response = json.loads(res.read().decode('utf-8'))
+            else:
+                response = res.read().decode('utf-8')
     except urllib.error.HTTPError as e:
         raise HTTPError(e.reason, e.code)
     return response
