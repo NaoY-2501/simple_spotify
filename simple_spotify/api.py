@@ -568,6 +568,69 @@ class Spotify(SpotifyBase):
         response = http_request(self.authorization, endpoint, data=data, method='PUT')
         return response
 
+    @auth_validation(['user-follow-modify'])
+    @ids_validation(50)
+    @token_refresh
+    def unfollow_artists(self, ids):
+        """
+        Unfollow artists
+        Endpoint: PUT https://api.spotify.com/v1/me/following
+        :param ids: list of Album IDs. maximum length is 50.
+        :return:
+        """
+        endpoint = 'https://api.spotify.com/v1/me/following'
+        params = {
+            'ids': ids
+        }
+        data = json.dumps(params).encode('utf-8')
+        query_param = {
+            'type': 'artist'
+        }
+        full_url = self.make_full_url(endpoint, urllib.parse.urlencode(query_param))
+        response = http_request(self.authorization, full_url, data=data, method='DELETE')
+        return response
+
+    @auth_validation(['user-follow-modify'])
+    @ids_validation(50)
+    @token_refresh
+    def unfollow_users(self, ids):
+        """
+        Unfollow users
+        Endpoint: PUT https://api.spotify.com/v1/me/following
+        :param ids: list of Album IDs. maximum length is 50.
+        :return:
+        """
+        endpoint = 'https://api.spotify.com/v1/me/following'
+        params = {
+            'ids': ids
+        }
+        data = json.dumps(params).encode('utf-8')
+        query_param = {
+            'type': 'user'
+        }
+        full_url = self.make_full_url(endpoint, urllib.parse.urlencode(query_param))
+        response = http_request(self.authorization, full_url, data=data, method='DELETE')
+        return response
+
+    @auth_validation(['play-list-modify-public', 'playlist-modify-private'])
+    @id_validation('playlist ID')
+    @token_refresh
+    def unfollow_playlist(self, playlist_id, is_public=True):
+        """
+        Unfollow playlist
+        Endpoint: PUT https://api.spotify.com/v1/playlists/{playlist_id}/followers
+        :param playlist_id: playlist ID
+        :param is_public: If true the playlist will be includes in user's public playlist,
+               if false it will remain private. Defaults to True.
+        :return:
+        """
+        endpoint = 'https://api.spotify.com/v1/playlists/{playlist_id}/followers'.format(
+            playlist_id=playlist_id
+        )
+        data = json.dumps(is_public).encode('utf-8')
+        response = http_request(self.authorization, endpoint, data=data, method='DELETE')
+        return response
+
     # Library
 
     @auth_validation(['user-library-read'])
