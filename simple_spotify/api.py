@@ -549,6 +549,25 @@ class Spotify(SpotifyBase):
         response = http_request(self.authorization, full_url, data=data, method='PUT')
         return response
 
+    @auth_validation(['play-list-modify-public', 'playlist-modify-private'])
+    @id_validation('playlist ID')
+    @token_refresh
+    def follow_playlist(self, playlist_id, is_public=True):
+        """
+        Follow playlist
+        Endpoint: PUT https://api.spotify.com/v1/playlists/{playlist_id}/followers
+        :param playlist_id: playlist ID
+        :param is_public: If true the playlist will be includes in user's public playlist,
+               if false it will remain private. Defaults to True.
+        :return:
+        """
+        endpoint = 'https://api.spotify.com/v1/playlists/{playlist_id}/followers'.format(
+            playlist_id=playlist_id
+        )
+        data = json.dumps(is_public).encode('utf-8')
+        response = http_request(self.authorization, endpoint, data=data, method='PUT')
+        return response
+
     # Library
 
     @auth_validation(['user-library-read'])
