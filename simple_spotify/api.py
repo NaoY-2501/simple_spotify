@@ -637,7 +637,7 @@ class Spotify(SpotifyBase):
     def save_albums_for_current_user(self, ids):
         """
         Add albums for current user's library.
-        Endpoint: DELETE https://api.spotify.com/v1/me/albums
+        Endpoint: PUT https://api.spotify.com/v1/me/albums
         :param ids: list of Album IDs. maximum length is 50.
         :return:
         """
@@ -652,7 +652,7 @@ class Spotify(SpotifyBase):
     def save_tracks_for_current_user(self, ids):
         """
         Add tracks for current user's library.
-        Endpoint: DELETE https://api.spotify.com/v1/me/tracks
+        Endpoint: PUT https://api.spotify.com/v1/me/tracks
         :param ids: list of Track IDs. maximum length is 50.
         :return:
         """
