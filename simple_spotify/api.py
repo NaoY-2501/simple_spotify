@@ -505,6 +505,50 @@ class Spotify(SpotifyBase):
         response = http_request(self.authorization, full_url)
         return CursorBasedPaging(response, Artist, self.authorization, 'artists')
 
+    @auth_validation(['user-follow-modify'])
+    @ids_validation(50)
+    @token_refresh
+    def follow_artists(self, ids):
+        """
+        Follow artists
+        Endpoint: PUT https://api.spotify.com/v1/me/following
+        :param ids: list of Album IDs. maximum length is 50.
+        :return:
+        """
+        endpoint = 'https://api.spotify.com/v1/me/following'
+        params = {
+            'ids': ids
+        }
+        data = json.dumps(params).encode('utf-8')
+        query_param = {
+            'type': 'artist'
+        }
+        full_url = self.make_full_url(endpoint, urllib.parse.urlencode(query_param))
+        response = http_request(self.authorization, full_url, data=data, method='PUT')
+        return response
+
+    @auth_validation(['user-follow-modify'])
+    @ids_validation(50)
+    @token_refresh
+    def follow_users(self, ids):
+        """
+        Follow users
+        Endpoint: PUT https://api.spotify.com/v1/me/following
+        :param ids: list of Album IDs. maximum length is 50.
+        :return:
+        """
+        endpoint = 'https://api.spotify.com/v1/me/following'
+        params = {
+            'ids': ids
+        }
+        data = json.dumps(params).encode('utf-8')
+        query_param = {
+            'type': 'user'
+        }
+        full_url = self.make_full_url(endpoint, urllib.parse.urlencode(query_param))
+        response = http_request(self.authorization, full_url, data=data, method='PUT')
+        return response
+
     # Library
 
     @auth_validation(['user-library-read'])
