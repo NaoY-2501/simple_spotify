@@ -56,7 +56,7 @@ def token_refresh(func):
 def auth_validation(scopes):
     def _validate(func):
         def wrapper(self, *args, **kwargs):
-            if isinstance(self.authorization, AuthorizationCodeFlow):
+            if not isinstance(self.authorization, AuthorizationCodeFlow):
                 raise ValidationError('This endpoint is only for AuthorizationCodeFlow')
             for scope in scopes:
                 if scope in self.authorization.scope:
