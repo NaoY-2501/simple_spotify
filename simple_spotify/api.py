@@ -1,4 +1,5 @@
 import datetime
+import json
 import urllib.parse
 
 from .consts import SEARCH_TYPES, ENTITY_TYPES, TIME_RANGES
@@ -599,6 +600,21 @@ class Spotify(SpotifyBase):
         full_url = self.make_full_url(endpoint, data)
         response = http_request(self.authorization, full_url)
         return Paging(response, SavedTrack, self.authorization)
+
+    @ids_validation(50)
+    @auth_validation(['user-library-modify'])
+    @token_refresh
+    def remove_current_user_saved_albums(self, ids):
+        """
+        Remove saved albums for current user.
+        Endpoint: DELETE https://api.spotify.com/v1/me/albums?ids={ids}
+        :param ids: list of Album IDs. maximum length is 50.
+        :return:
+        """
+        endpoint = 'https://api.spotify.com/v1/me/albums'
+        data = json.dumps(ids).encode('utf-8')
+        response = http_request(self.authorization, endpoint, data=data, method='DELETE')
+        return response
 
     # Personalization
 
