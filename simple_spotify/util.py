@@ -7,7 +7,7 @@ from .errors import HTTPError, ValidationError
 
 def http_request(authorization, url, data=None, method='GET'):
     headers = authorization.authorization
-    if method in ['POST, PUT', 'DELETE']:
+    if method in ['POST', 'PUT', 'DELETE']:
         headers['Content-Type'] = 'application/json'
     req = urllib.request.Request(
         url, data, headers=headers, method=method
