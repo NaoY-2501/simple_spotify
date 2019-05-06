@@ -1,7 +1,7 @@
 import datetime
 
 from .consts import RESULT_TYPES, PITCH_CLASS
-from .util import get_response
+from .util import http_request
 
 
 class ObjectBase:
@@ -415,7 +415,7 @@ class Paging:
         self.total = raw_json['total']
 
     def __paging__(self, url):
-        response = get_response(self.auth, url)
+        response = http_request(self.auth, url)
         page = Paging(response, self.klass, self.auth)
         self.href = response['href']
         self.items = self.__items__(response)
@@ -455,7 +455,7 @@ class CustomPaging:
         self.total = self.raw['total']
 
     def __paging__(self, url):
-        response = get_response(self.auth, url)
+        response = http_request(self.auth, url)
         page = CustomPaging(response, self.klass, self.auth, self.key)
         self.href = response[self.key]['href']
         self.items = self.__items__(response[self.key])
@@ -493,7 +493,7 @@ class CursorBasedPaging:
         self.total = self.raw['total']
 
     def __paging__(self, url):
-        response = get_response(self.auth, url)
+        response = http_request(self.auth, url)
         page = CustomPaging(response, self.klass, self.auth, self.key)
         self.href = response[self.key]['href']
         self.items = self.__items__(response[self.key])

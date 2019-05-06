@@ -8,7 +8,7 @@ from .models import Album, SimplifiedAlbum, Artist, SimplifiedTrack, Track, \
     AudioFeature, AudioAnalysis, SearchResult, Paging, CustomPaging, CursorBasedPaging, \
     PrivateUser, PublicUser, Category, RecommendationsResponse, SimplifiedPlaylist, \
     SavedAlbum, SavedTrack
-from .util import get_response, validate_limit, validate_offset
+from .util import http_request, post_request, validate_limit, validate_offset
 
 
 class SpotifyBase:
@@ -40,7 +40,7 @@ class Spotify(SpotifyBase):
         endpoint = 'https://api.spotify.com/v1/albums/{id}'.format(
             id=album_id
         )
-        response = get_response(self.authorization, endpoint)
+        response = http_request(self.authorization, endpoint)
         result = Album(response, self.authorization)
         return result
 
@@ -73,7 +73,7 @@ class Spotify(SpotifyBase):
 
         data = urllib.parse.urlencode(queries)
         full_url = self.make_full_url(endpoint, data)
-        response = get_response(self.authorization, full_url)
+        response = http_request(self.authorization, full_url)
         return Paging(response, SimplifiedTrack, self.authorization)
 
     @ids_validation(50)
@@ -93,7 +93,7 @@ class Spotify(SpotifyBase):
 
         data = urllib.parse.urlencode(query)
         full_url = self.make_full_url(endpoint, data)
-        response = get_response(self.authorization, full_url)
+        response = http_request(self.authorization, full_url)
         converter = Album.to_object
         results = []
         for result in response['albums']:
@@ -114,7 +114,7 @@ class Spotify(SpotifyBase):
         endpoint = 'https://api.spotify.com/v1/artists/{id}'.format(
             id=artist_id
         )
-        response = get_response(self.authorization, endpoint)
+        response = http_request(self.authorization, endpoint)
         result = Artist(response)
         return result
 
@@ -135,7 +135,7 @@ class Spotify(SpotifyBase):
 
         data = urllib.parse.urlencode(query)
         full_url = self.make_full_url(endpoint, data)
-        response = get_response(self.authorization, full_url)
+        response = http_request(self.authorization, full_url)
         converter = Artist.to_object
         results = []
         for result in response['artists']:
@@ -180,7 +180,7 @@ class Spotify(SpotifyBase):
 
         data = urllib.parse.urlencode(queries)
         full_url = self.make_full_url(endpoint, data)
-        response = get_response(self.authorization, full_url)
+        response = http_request(self.authorization, full_url)
         return Paging(response, SimplifiedAlbum, self.authorization)
 
     @id_validation('artist id')
@@ -195,7 +195,7 @@ class Spotify(SpotifyBase):
         endpoint = 'https://api.spotify.com/v1/artists/{artist_id}/related-artists'.format(
             artist_id=artist_id
         )
-        response = get_response(self.authorization, endpoint)
+        response = http_request(self.authorization, endpoint)
         converter = Artist.to_object
         results = []
         for result in response['artists']:
@@ -226,7 +226,7 @@ class Spotify(SpotifyBase):
         }
         data = urllib.parse.urlencode(query)
         full_url = self.make_full_url(endpoint, data)
-        response = get_response(self.authorization, full_url)
+        response = http_request(self.authorization, full_url)
         converter = Track.to_object
         results = []
         for result in response['tracks']:
@@ -246,7 +246,7 @@ class Spotify(SpotifyBase):
         endpoint = 'https://api.spotify.com/v1/browse/categories/{category_id}'.format(
             category_id=category_id
         )
-        response = get_response(self.authorization, endpoint)
+        response = http_request(self.authorization, endpoint)
         result = Category(response)
         return result
 
@@ -275,7 +275,7 @@ class Spotify(SpotifyBase):
             queries['locale'] = locale
         data = urllib.parse.urlencode(queries)
         full_url = self.make_full_url(endpoint, data)
-        response = get_response(self.authorization, full_url)
+        response = http_request(self.authorization, full_url)
         return CustomPaging(response, Category, self.authorization, 'categories')
 
     @recommendations_validation
@@ -320,7 +320,7 @@ class Spotify(SpotifyBase):
         queries.update(**kwargs)
         data = urllib.parse.urlencode(queries)
         full_url = self.make_full_url(endpoint, data)
-        response = get_response(self.authorization, full_url)
+        response = http_request(self.authorization, full_url)
         return RecommendationsResponse(response)
 
     @token_refresh
@@ -331,7 +331,7 @@ class Spotify(SpotifyBase):
         :return: list of available genre seeds
         """
         endpoint = 'https://api.spotify.com/v1/recommendations/available-genre-seeds'
-        response = get_response(self.authorization, endpoint)
+        response = http_request(self.authorization, endpoint)
         return response['genres']
 
     @token_refresh
@@ -350,7 +350,7 @@ class Spotify(SpotifyBase):
             queries['country'] = country
         data = urllib.parse.urlencode(queries)
         full_url = self.make_full_url(endpoint, data)
-        response = get_response(self.authorization, full_url)
+        response = http_request(self.authorization, full_url)
         return CustomPaging(response, SimplifiedAlbum, self.authorization, 'albums')
 
     @id_validation('category id')
@@ -380,7 +380,7 @@ class Spotify(SpotifyBase):
             queries['country'] = country
         data = urllib.parse.urlencode(queries)
         full_url = self.make_full_url(endpoint, data)
-        response = get_response(self.authorization, full_url)
+        response = http_request(self.authorization, full_url)
         return CustomPaging(response, SimplifiedPlaylist, self.authorization, 'playlists')
 
     @token_refresh
@@ -418,7 +418,7 @@ class Spotify(SpotifyBase):
             queries['timestamp'] = timestamp
         data = urllib.parse.urlencode(queries)
         full_url = self.make_full_url(endpoint, data)
-        response = get_response(self.authorization, full_url)
+        response = http_request(self.authorization, full_url)
         return CustomPaging(response, SimplifiedPlaylist, self.authorization, 'playlists')
 
     # Follow
@@ -448,7 +448,7 @@ class Spotify(SpotifyBase):
         }
         data = urllib.parse.urlencode(queries)
         full_url = self.make_full_url(endpoint, data)
-        response = get_response(self.authorization, full_url)
+        response = http_request(self.authorization, full_url)
         return response
 
     @auth_validation(['playlisy-read-private'])
@@ -477,7 +477,7 @@ class Spotify(SpotifyBase):
         }
         data = urllib.parse.urlencode(queries)
         full_url = self.make_full_url(endpoint, data)
-        response = get_response(self.authorization, full_url)
+        response = http_request(self.authorization, full_url)
         return response
 
     @auth_validation(['user-follow-read'])
@@ -501,7 +501,7 @@ class Spotify(SpotifyBase):
             queries['after'] = after
         data = urllib.parse.urlencode(queries)
         full_url = self.make_full_url(endpoint, data)
-        response = get_response(self.authorization, full_url)
+        response = http_request(self.authorization, full_url)
         return CursorBasedPaging(response, Artist, self.authorization, 'artists')
 
     # Library
@@ -522,7 +522,7 @@ class Spotify(SpotifyBase):
         }
         data = urllib.parse.urlencode(query)
         full_url = self.make_full_url(endpoint, data)
-        response = get_response(self.authorization, full_url)
+        response = http_request(self.authorization, full_url)
         return response
 
     @auth_validation(['user-library-read'])
@@ -541,7 +541,7 @@ class Spotify(SpotifyBase):
         }
         data = urllib.parse.urlencode(query)
         full_url = self.make_full_url(endpoint, data)
-        response = get_response(self.authorization, full_url)
+        response = http_request(self.authorization, full_url)
         return response
 
     @auth_validation(['user-library-read'])
@@ -569,7 +569,7 @@ class Spotify(SpotifyBase):
             queries['market'] = market
         data = urllib.parse.urlencode(queries)
         full_url = self.make_full_url(endpoint, data)
-        response = get_response(self.authorization, full_url)
+        response = http_request(self.authorization, full_url)
         return Paging(response, SavedAlbum, self.authorization)
 
     @auth_validation(['user-library-read'])
@@ -597,7 +597,7 @@ class Spotify(SpotifyBase):
             queries['market'] = market
         data = urllib.parse.urlencode(queries)
         full_url = self.make_full_url(endpoint, data)
-        response = get_response(self.authorization, full_url)
+        response = http_request(self.authorization, full_url)
         return Paging(response, SavedTrack, self.authorization)
 
     # Personalization
@@ -639,7 +639,7 @@ class Spotify(SpotifyBase):
         }
         data = urllib.parse.urlencode(queries)
         full_url = self.make_full_url(endpoint, data)
-        response = get_response(self.authorization, full_url)
+        response = http_request(self.authorization, full_url)
         if entity_type.lower() == 'artists':
             klass = Artist
         elif entity_type.lower() == 'tracks':
@@ -697,7 +697,7 @@ class Spotify(SpotifyBase):
 
         data = urllib.parse.urlencode(queries)
         full_url = self.make_full_url(endpoint, data)
-        response = get_response(self.authorization, full_url)
+        response = http_request(self.authorization, full_url)
         results = SearchResult(q, search_types, response, self.authorization)
         return results
 
@@ -715,7 +715,7 @@ class Spotify(SpotifyBase):
         endpoint = 'https://api.spotify.com/v1/tracks/{track_id}'.format(
             track_id=track_id
         )
-        response = get_response(self.authorization, endpoint)
+        response = http_request(self.authorization, endpoint)
         result = Track(response)
         return result
 
@@ -734,7 +734,7 @@ class Spotify(SpotifyBase):
         }
         data = urllib.parse.urlencode(query)
         full_url = self.make_full_url(endpoint, data)
-        response = get_response(self.authorization, full_url)
+        response = http_request(self.authorization, full_url)
         converter = Track.to_object
         results = []
         for result in response['tracks']:
@@ -753,7 +753,7 @@ class Spotify(SpotifyBase):
         endpoint = 'https://api.spotify.com/v1/audio-analysis/{id}'.format(
             id=track_id
         )
-        response = get_response(self.authorization, endpoint)
+        response = http_request(self.authorization, endpoint)
         result = AudioAnalysis(response)
         return result
 
@@ -768,7 +768,7 @@ class Spotify(SpotifyBase):
         endpoint = 'https://api.spotify.com/v1/audio-features/{id}'.format(
             id=track_id
         )
-        response = get_response(self.authorization, endpoint)
+        response = http_request(self.authorization, endpoint)
         result = AudioFeature(response)
         return result
 
@@ -786,7 +786,7 @@ class Spotify(SpotifyBase):
         }
         data = urllib.parse.urlencode(query)
         full_url = self.make_full_url(endpoint, data)
-        response = get_response(self.authorization, full_url)
+        response = http_request(self.authorization, full_url)
         converter = AudioFeature.to_object
         results = []
         for result in response['audio_features']:
@@ -803,7 +803,7 @@ class Spotify(SpotifyBase):
         :return:
         """
         endpoint = 'https://api.spotify.com/v1/me'
-        response = get_response(self.authorization, endpoint)
+        response = http_request(self.authorization, endpoint)
         return PrivateUser(response)
 
     @id_validation('user id')
@@ -817,5 +817,5 @@ class Spotify(SpotifyBase):
         endpoint = 'https://api.spotify.com/v1/users/{user_id}'.format(
             user_id=user_id
         )
-        response = get_response(self.authorization, endpoint)
+        response = http_request(self.authorization, endpoint)
         return PublicUser(response)
