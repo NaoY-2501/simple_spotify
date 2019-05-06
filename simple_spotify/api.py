@@ -607,11 +607,26 @@ class Spotify(SpotifyBase):
     def remove_current_user_saved_albums(self, ids):
         """
         Remove saved albums for current user.
-        Endpoint: DELETE https://api.spotify.com/v1/me/albums?ids={ids}
+        Endpoint: DELETE https://api.spotify.com/v1/me/albums
         :param ids: list of Album IDs. maximum length is 50.
         :return:
         """
         endpoint = 'https://api.spotify.com/v1/me/albums'
+        data = json.dumps(ids).encode('utf-8')
+        response = http_request(self.authorization, endpoint, data=data, method='DELETE')
+        return response
+
+    @ids_validation(50)
+    @auth_validation(['user-library-modify'])
+    @token_refresh
+    def remove_current_user_saved_tracks(self, ids):
+        """
+        Remove saved tracks for current user.
+        Endpoint: DELETE https://api.spotify.com/v1/me/tracks
+        :param ids: list of Track IDs. maximum length is 50.
+        :return:
+        """
+        endpoint = 'https://api.spotify.com/v1/me/tracks'
         data = json.dumps(ids).encode('utf-8')
         response = http_request(self.authorization, endpoint, data=data, method='DELETE')
         return response
