@@ -631,6 +631,21 @@ class Spotify(SpotifyBase):
         response = http_request(self.authorization, endpoint, data=data, method='DELETE')
         return response
 
+    @ids_validation(50)
+    @auth_validation(['user-library-modify'])
+    @token_refresh
+    def save_tracks_for_current_user(self, ids):
+        """
+        Add tracks for current user's library.
+        Endpoint: DELETE https://api.spotify.com/v1/me/tracks
+        :param ids: list of Track IDs. maximum length is 50.
+        :return:
+        """
+        endpoint = 'https://api.spotify.com/v1/me/tracks'
+        data = json.dumps(ids).encode('utf-8')
+        response = http_request(self.authorization, endpoint, data=data, method='PUT')
+        return response
+
     # Personalization
 
     @id_validation('type')
