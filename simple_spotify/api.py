@@ -31,7 +31,7 @@ class Spotify(SpotifyBase):
 
     @id_validation('album id')
     @token_refresh
-    def album(self, album_id):
+    def get_album(self, album_id):
         """
         Get album information
         Endpoint: GET https://api.spotify.com/v1/albums/{id}
@@ -47,7 +47,7 @@ class Spotify(SpotifyBase):
 
     @id_validation('album id')
     @token_refresh
-    def albums_tracks(self, album_id, limit=20, offset=0, market=None):
+    def get_albums_tracks(self, album_id, limit=20, offset=0, market=None):
         """
         Get tracks which is contained album
         :param album_id: The Spotify ID for album
@@ -79,7 +79,7 @@ class Spotify(SpotifyBase):
 
     @ids_validation(50)
     @token_refresh
-    def albums(self, album_ids):
+    def get_albums(self, album_ids):
         """
         Get several albums information.
         Endpoint:GET https://api.spotify.com/v1/albums
@@ -105,7 +105,7 @@ class Spotify(SpotifyBase):
 
     @id_validation('artist id')
     @token_refresh
-    def artist(self, artist_id):
+    def get_artist(self, artist_id):
         """
         Get artist information.
         Endpoint:GET https://api.spotify.com/v1/artists/{id}
@@ -121,7 +121,7 @@ class Spotify(SpotifyBase):
 
     @ids_validation(50)
     @token_refresh
-    def artists(self, artist_ids):
+    def get_artists(self, artist_ids):
         """
         Get several artists information.
         Endpoint:GET https://api.spotify.com/v1/artists
@@ -145,7 +145,7 @@ class Spotify(SpotifyBase):
 
     @id_validation('artist id')
     @token_refresh
-    def artist_albums(self, artist_id, include_groups=None, limit=20, offset=0, country=None):
+    def get_artist_albums(self, artist_id, include_groups=None, limit=20, offset=0, country=None):
         """
         Get information about artist's albums
         Endpoint: GET https://api.spotify.com/v1/artists/{id}/albums
@@ -186,7 +186,7 @@ class Spotify(SpotifyBase):
 
     @id_validation('artist id')
     @token_refresh
-    def related_artists(self, artist_id):
+    def get_related_artists(self, artist_id):
         """
         Get information about 20 related artists to a given artist.
         Endpoint: GET https://api.spotify.com/v1/artists/{id}/related-artists
@@ -205,7 +205,7 @@ class Spotify(SpotifyBase):
 
     @id_validation('artist id')
     @token_refresh
-    def artist_top_tracks(self, artist_id, county_code=None):
+    def get_artist_top_tracks(self, artist_id, county_code=None):
         """
         Get information about an artist's top tracks.
         Endpoint: GET https://api.spotify.com/v1/artists/{id}/top-tracks
@@ -238,7 +238,7 @@ class Spotify(SpotifyBase):
 
     @id_validation('category id')
     @token_refresh
-    def category(self, category_id):
+    def get_category(self, category_id):
         """
         Endpoint: GET https://api.spotify.com/v1/browse/categories/{category_id}
         :param category_id: The Spotify category ID
@@ -252,7 +252,7 @@ class Spotify(SpotifyBase):
         return result
 
     @token_refresh
-    def categories(self, country=None, locale=None, limit=20, offset=0):
+    def get_categories(self, country=None, locale=None, limit=20, offset=0):
         """
         Endpoint: GET https://api.spotify.com/v1/browse/categories
         :param country: ISO 3166-1 alpha-2 country code
@@ -281,7 +281,7 @@ class Spotify(SpotifyBase):
         return CustomPaging(response, Category, self.authorization, 'categories')
 
     @recommendations_validation
-    def recommendations(self, limit=20, market=None, seed_artists=None, seed_genres=None, seed_tracks=None, **kwargs):
+    def get_recommendations(self, limit=20, market=None, seed_artists=None, seed_genres=None, seed_tracks=None, **kwargs):
         """
         Recommend tracks. Recommendation are generated based on the given seed entities.
         Endpoint: GET https://api.spotify.com/v1/recommendations
@@ -326,7 +326,7 @@ class Spotify(SpotifyBase):
         return RecommendationsResponse(response)
 
     @token_refresh
-    def available_genre_seeds(self):
+    def get_available_genre_seeds(self):
         """
         Get available genre seeds. Genre seeds use for recommendations.
         Endpoint: GET https://api.spotify.com/v1/recommendations/available-genre-seeds
@@ -364,7 +364,7 @@ class Spotify(SpotifyBase):
 
     @id_validation('category id')
     @token_refresh
-    def category_playlists(self, category_id, limit=20, offset=0, country=None):
+    def get_category_playlists(self, category_id, limit=20, offset=0, country=None):
         """
         Endpoint: GET https://api.spotify.com/v1/browse/categories/{category_id}/playlists
         :param category_id: The Spotify Category ID (e.g. pop, rock, j_tracks)
@@ -393,10 +393,10 @@ class Spotify(SpotifyBase):
         return CustomPaging(response, SimplifiedPlaylist, self.authorization, 'playlists')
 
     @token_refresh
-    def featured_playlists(self, locale=None, country=None, timestamp=None, limit=20, offset=0):
+    def get_featured_playlists(self, locale=None, country=None, timestamp=None, limit=20, offset=0):
         """
         Get featured playlists.
-        Endpoint: https://api.spotify.com/v1/browse/featured-playlists
+        Endpoint: GET https://api.spotify.com/v1/browse/featured-playlists
         :param locale: ISO 639-1 language code and an uppercase ISO 3166-1 alpha-2 country code. (e.g. ja_JP, en_US)
         :param country: an ISO 3166-1 alpha-2 country code.
         :param timestamp: DateTime object
@@ -435,24 +435,36 @@ class Spotify(SpotifyBase):
     @auth_validation(['user-follow-read'])
     @ids_validation(50)
     @token_refresh
-    def check_current_user_follows(self, target_type=None, ids=None):
+    def check_current_user_follow_artists(self, ids=None):
         """
         check current user is following artists or users.
         Endpoint: GET https://api.spotify.com/v1/me/following/contains
-        :param target_type: 'artist' or 'user'
+        :param ids: The Spotify IDs of artist
+        :return: List of boolean values
+        """
+        endpoint = 'https://api.spotify.com/v1/me/following/contains'
+        queries = {
+            'type': 'artist',
+            'ids': ','.join(ids)
+        }
+        data = urllib.parse.urlencode(queries)
+        full_url = self.make_full_url(endpoint, data)
+        response = http_request(self.authorization, full_url)
+        return response
+
+    @auth_validation(['user-follow-read'])
+    @ids_validation(50)
+    @token_refresh
+    def check_current_user_follow_users(self, ids=None):
+        """
+        check current user is following artists or users.
+        Endpoint: GET https://api.spotify.com/v1/me/following/contains
         :param ids: The Spotify IDs of artist or user
         :return: List of boolean values
         """
         endpoint = 'https://api.spotify.com/v1/me/following/contains'
-        # validate target_type
-        if not target_type:
-            ValidationError('target_type is required.')
-        if not isinstance(target_type, str):
-            ValidationError('target_type must be str')
-        if target_type.lower() not in ('artist', 'user'):
-            ValidationError('invalida target_type. Assign artist or user')
         queries = {
-            'type': target_type,
+            'type': 'user',
             'ids': ','.join(ids)
         }
         data = urllib.parse.urlencode(queries)
@@ -491,7 +503,7 @@ class Spotify(SpotifyBase):
 
     @auth_validation(['user-follow-read'])
     @token_refresh
-    def user_follow_artists(self, limit=20, after=None):
+    def get_current_user_follow_artists(self, limit=20, after=None):
         """
         Get the current user's followed artists.
         Endpoint: GET https://api.spotify.com/v1/me/following?type=artist
@@ -649,7 +661,7 @@ class Spotify(SpotifyBase):
         Chck albums already saved in the current 'Your Music' library
         Endpoint: GET https://api.spotify.com/v1/me/albums/contains
         :param album_ids: lLst of the Spotify IDs for albums
-        :return: list of boolean object
+        :return: List of boolean object
         """
         endpoint = 'https://api.spotify.com/v1/me/albums/contains'
         query = {
@@ -800,7 +812,7 @@ class Spotify(SpotifyBase):
     @id_validation('type')
     @auth_validation(['user-top-read'])
     @token_refresh
-    def users_top(self, entity_type, limit=20, offset=0, time_range='medium_term'):
+    def get_users_top(self, entity_type, limit=20, offset=0, time_range='medium_term'):
         """
 
         :param entity_type: artists or tracks
@@ -900,7 +912,7 @@ class Spotify(SpotifyBase):
 
     @id_validation('track id')
     @token_refresh
-    def track(self, track_id):
+    def get_track(self, track_id):
         """
         Get track information.
         Endpoint: GET https://api.spotify.com/v1/tracks/{id}
@@ -916,7 +928,7 @@ class Spotify(SpotifyBase):
 
     @ids_validation(50)
     @token_refresh
-    def tracks(self, track_ids):
+    def get_tracks(self, track_ids):
         """
         Get several track informations.
         Endpoint: GET https://api.spotify.com/v1/tracks
@@ -938,7 +950,7 @@ class Spotify(SpotifyBase):
 
     @id_validation('track id')
     @token_refresh
-    def audio_analysis(self, track_id):
+    def get_audio_analysis(self, track_id):
         """
         Get audio feature for track.
         Endpoint: Get https://api.spotify.com/v1/audio-analysis/{id}
@@ -954,7 +966,7 @@ class Spotify(SpotifyBase):
 
     @id_validation('track id')
     @token_refresh
-    def audio_feature(self, track_id):
+    def get_audio_feature(self, track_id):
         """
         Get audio feature for track.
         :param track_id: The Spotify ID for track
@@ -969,7 +981,7 @@ class Spotify(SpotifyBase):
 
     @ids_validation(100)
     @token_refresh
-    def audio_features(self, track_ids):
+    def get_audio_features(self, track_ids):
         """
         Get several audio features
         :param track_ids: List of the Spotify IDs for track. Maximum length is 100
@@ -992,7 +1004,7 @@ class Spotify(SpotifyBase):
 
     @auth_validation(['user-read-email', 'user-read-private', 'user-read-birthdate'])
     @token_refresh
-    def current_user_profile(self):
+    def get_current_user_profile(self):
         """
         Endpoint: GET https://api.spotify.com/v1/me
         :return: PrivateUser object
@@ -1003,7 +1015,7 @@ class Spotify(SpotifyBase):
 
     @id_validation('user id')
     @token_refresh
-    def user_profile(self, user_id):
+    def get_user_profile(self, user_id):
         """
         Endpoint: GET https://api.spotify.com/v1/users/{user_id}
         :param user_id:
