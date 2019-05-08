@@ -381,38 +381,35 @@ class SearchResult:
         self.search_type = search_type
         self.raw = result_json
         self.auth = auth
-        self.albums = Paging(
-            self.raw[RESULT_TYPES['album']],
+        self.albums = CustomPaging(
+            self.raw,
             SimplifiedAlbum,
-            self.auth) if 'album' in self.search_type else None
-        self.artists = Paging(
-            self.raw[RESULT_TYPES['artist']],
+            self.auth,
+            'tracks') if 'album' in self.search_type else None
+        self.artists = CustomPaging(
+            self.raw,
             Artist,
-            self.auth) if 'artist' in self.search_type else None
-        self.playlists = Paging(
-            self.raw[RESULT_TYPES['playlist']],
+            self.auth,
+            'artists') if 'artist' in self.search_type else None
+        self.playlists = CustomPaging(
+            self.raw,
             SimplifiedPlaylist,
-            self.auth) if 'playlist' in self.search_type else None
-        self.tracks = Paging(
-            self.raw[RESULT_TYPES['track']],
+            self.auth,
+            'playlists') if 'playlist' in self.search_type else None
+        self.tracks = CustomPaging(
+            self.raw,
             Track,
-            self.auth) if 'track' in self.search_type else None
+            self.auth,
+            'tracks') if 'track' in self.search_type else None
 
     def __str__(self):
         return 'Query:{q} Result:{search_type}'.format(q=self.q, search_type=self.search_type)
 
 
-class Paging:
-    def __init__(self, raw_json, klass, auth):
-        self.href = raw_json['href']
+class PagingBase:
+    def __init__(self, klass, auth):
         self.klass = klass
         self.auth = auth
-        self.items = self.__items__(raw_json)
-        self.limit = raw_json['limit']
-        self.next = raw_json['next']
-        self.offset = raw_json['offset']
-        self.previous = raw_json['previous']
-        self.total = raw_json['total']
 
     def __paging__(self, url):
         response = http_request(self.auth, url)
@@ -433,20 +430,31 @@ class Paging:
             return self.__paging__(self.next)
         return None
 
+
+class Paging(PagingBase):
+    def __init__(self, raw_json, klass, auth):
+        super(Paging, self).__init__(klass, auth)
+        self.href = raw_json['href']
+        self.items = self.__items__(raw_json)
+        self.limit = raw_json['limit']
+        self.next = raw_json['next']
+        self.offset = raw_json['offset']
+        self.previous = raw_json['previous']
+        self.total = raw_json['total']
+
     def get_previous(self):
         if self.previous:
             return self.__paging__(self.previous)
         return None
 
 
-class CustomPaging:
+class CustomPaging(PagingBase):
     def __init__(self, raw_json, klass, auth, key):
+        super(CustomPaging, self).__init__(klass, auth)
         self.message = raw_json.get('message', None)
         self.key = key
         self.raw = raw_json[key]
         self.href = self.raw['href']
-        self.klass = klass
-        self.auth = auth
         self.items = self.__items__(self.raw)
         self.limit = self.raw['limit']
         self.next = self.raw['next']
@@ -463,29 +471,18 @@ class CustomPaging:
         self.previous = response[self.key]['previous']
         return page
 
-    def __items__(self, response):
-        if response:
-            return [self.klass.to_object(item) for item in response['items']]
-        return None
-
-    def get_next(self):
-        if self.next:
-            return self.__paging__(self.next)
-        return None
-
     def get_previous(self):
         if self.previous:
             return self.__paging__(self.previous)
         return None
 
 
-class CursorBasedPaging:
+class CursorBasedPaging(PagingBase):
     def __init__(self, raw_json, klass, auth, key):
+        super(CursorBasedPaging, self).__init__(klass, auth)
         self.key = key
         self.raw = raw_json[key]
         self.href = self.raw['href']
-        self.klass = klass
-        self.auth = auth
         self.items = self.__items__(raw_json)
         self.limit = self.raw['limit']
         self.next = self.raw['next']
@@ -500,16 +497,6 @@ class CursorBasedPaging:
         self.next = response[self.key]['next']
         self.previous = response[self.key]['previous']
         return page
-
-    def __items__(self, response):
-        if response:
-            return [self.klass.to_object(item) for item in response['items']]
-        return None
-
-    def get_next(self):
-        if self.next:
-            return self.__paging__(self.next)
-        return None
 
 
 class UserBase(ObjectBase):
