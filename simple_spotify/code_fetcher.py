@@ -40,7 +40,7 @@ def main():
         Authorization Code Flow Support Tool
     =============================================
 
-    This tool fetch authorization code from https://accounts.spotify.com/authorize.
+    Fetch authorization code from https://accounts.spotify.com/authorize.
     Output json file named simple-spotify_code.json.
     This json file includes client_id, client_secret, authorization code, redirect uri.
     Format of json file as follows.
@@ -66,7 +66,7 @@ def main():
         cont = input('Add more scope ?(y/n) :')
         scopes.append(scope)
 
-    state = input('Enter the state (Optional, but strongly recommended) :')
+    state = input('Enter the seed for generating CSRF token :')
 
     url = access_authorize_page(client_id, redirect_uri, scopes, state)
     webbrowser.open(url)
