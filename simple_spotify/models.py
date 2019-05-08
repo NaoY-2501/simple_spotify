@@ -1,6 +1,6 @@
 import datetime
 
-from .consts import RESULT_TYPES, PITCH_CLASS
+from .consts import PITCH_CLASS
 from .util import http_request
 
 
