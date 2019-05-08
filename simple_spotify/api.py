@@ -290,7 +290,7 @@ class Spotify(SpotifyBase):
         :param seed_artists: List of Spotify ID for artists.
                Up to 5 seed values may be in provided in any combinations of seed_artists, seed_genres and seed_tracks.
         :param seed_genres: List of genres in the set of available genre seeds.
-               You can get list of available genre seeds with available_genre_seeds() method.
+               You can get list of available genre seeds with simple_spotify.consts.GENRE_SEEDS
         :param seed_tracks: List of Spotify ID for tracks.
         :param kwargs: Optional. Multiple values. Tuneable attribute for recommendation.
         :return: RecommendationsReponse object. It contains recommend tracks and information about seeds.
