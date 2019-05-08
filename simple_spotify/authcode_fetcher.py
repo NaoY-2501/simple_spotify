@@ -1,5 +1,6 @@
 import hashlib
 import json
+import os
 import urllib.parse
 import urllib.request
 import webbrowser
@@ -51,7 +52,6 @@ def main():
         'redirect_uri': redirect_uri
     }
     """)
-
     client_id = input('Enter the your Client ID :')
 
     client_secret = input('Enter the your Client Secret :')
@@ -80,7 +80,11 @@ def main():
         'redirect_uri': redirect_uri
     }
 
-    with open('simple-spotify_code.json', 'w') as fout:
+    current_dir = os.path.curdir
+    fname = '{current_dir}simple_spotify_code.json'.format(
+        current_dir=current_dir
+    )
+    with open(fname, 'w') as fout:
         json.dump(data, fout, indent=4)
 
 
