@@ -337,7 +337,7 @@ class Spotify(SpotifyBase):
         return response['genres']
 
     @token_refresh
-    def new_release(self, country=None, limit=20, offset=0):
+    def get_new_release(self, country=None, limit=20, offset=0):
         """
 
         :param country: ISO 3166-1 alpha-2 country code
