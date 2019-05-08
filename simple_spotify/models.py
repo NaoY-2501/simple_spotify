@@ -385,7 +385,7 @@ class SearchResult:
             self.raw,
             SimplifiedAlbum,
             self.auth,
-            'tracks') if 'album' in self.search_type else None
+            'albums') if 'album' in self.search_type else None
         self.artists = CustomPaging(
             self.raw,
             Artist,
