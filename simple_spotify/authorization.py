@@ -39,9 +39,9 @@ class ClientCredentialsFlow(SpotifyAuthBase):
     def __init__(self, client_id, client_secret):
         self.client_id = client_id
         self.client_secret = client_secret
-        self.access_token = None
-        self.token_type = None
-        self.expires_in = None
+        self.access_token = self.token_request()['access_token']
+        self.token_type = self.token_request()['token_type']
+        self.expires_in = self.token_request()['expires_in']
 
     @property
     def authorization(self):
@@ -50,10 +50,7 @@ class ClientCredentialsFlow(SpotifyAuthBase):
     def token_request(self):
         headers = self.get_header_param(self.client_id, self.client_secret)
         request_body = {'grant_type': 'client_credentials'}
-        response = self.get_response(headers, request_body)
-        self.access_token = response['access_token']
-        self.token_type = response['token_type']
-        self.expires_in = response['expires_in']
+        return self.get_response(headers, request_body)
 
 
 class AuthorizationCodeFlow(SpotifyAuthBase):
@@ -63,11 +60,11 @@ class AuthorizationCodeFlow(SpotifyAuthBase):
         self.code = code
         self.created_at = datetime.now()
         self.redirect_uri = redirect_uri
-        self.access_token = None
-        self.token_type = None
-        self.expires_in = None
-        self.scope = None
-        self.refresh_token = None
+        self.access_token = self.token_request()['access_token']
+        self.token_type = self.token_request()['token_type']
+        self.expires_in = self.token_request()['expires_in']
+        self.scope = self.token_request()['scope']
+        self.refresh_token = self.token_request()['refresh_token']
 
     @property
     def authorization(self):
@@ -82,12 +79,7 @@ class AuthorizationCodeFlow(SpotifyAuthBase):
             'client_id': self.client_id,
             'client_secret': self.client_secret
         }
-        response = self.get_response(headers, request_body)
-        self.access_token = response['access_token']
-        self.token_type = response['token_type']
-        self.expires_in = response['expires_in']
-        self.scope = response['scope']
-        self.refresh_token = response['refresh_token']
+        return self.get_response(headers, request_body)
 
     def token_refresh(self):
         headers = self.get_header_param(self.client_id, self.client_secret)
