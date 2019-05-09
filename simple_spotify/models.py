@@ -217,13 +217,11 @@ class SimplifiedArtist(SimplifiedObjectBase):
 
 class Artist(SimplifiedArtist):
 
+    @property
     def followers(self):
-        followers = self.raw['followers']
-        # href is always set to null as the Spotify Web API does not support it at the moment.
-        return {
-            'href': followers['href'] if followers['href'] != 'null' else None,
-            'total': followers['total']
-        }
+        # followers also has href but does not implement.
+        # Because, href is always set to null as the Spotify Web API does not support it at the moment.
+        return self.raw['followers']['total']
 
     @property
     def genres(self):
@@ -512,14 +510,10 @@ class UserBase(ObjectBase):
     def external_urls(self):
         return self.raw['external_urls']['spotify']
 
-    @property
     def followers(self):
-        followers = self.raw['followers']
-        # href is always set to null as the Spotify Web API does not support it at the moment.
-        return {
-            'href': followers['href'] if followers['href'] != 'null' else None,
-            'total': followers['total']
-        }
+        # followers also has href but does not implement.
+        # Because, href is always set to null as the Spotify Web API does not support it at the moment.
+        return self.raw['followers']['total']
 
     @property
     def href(self):
@@ -623,14 +617,10 @@ class Playlist(SimplifiedPlaylist):
     def description(self):
         return self.raw['description']
 
-    @property
     def followers(self):
-        followers = self.raw['followers']
-        # href is always set to null as the Spotify Web API does not support it at the moment.
-        return {
-            'href': followers['href'] if followers['href'] != 'null' else None,
-            'total': followers['total']
-        }
+        # followers also has href but does not implement.
+        # Because, href is always set to null as the Spotify Web API does not support it at the moment.
+        return self.raw['followers']['total']
 
     @property
     def name(self):
