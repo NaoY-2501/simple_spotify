@@ -481,10 +481,10 @@ class CursorBasedPaging(PagingBase):
         self.key = key
         self.raw = raw_json[key]
         self.href = self.raw['href']
-        self.items = self.__items__(raw_json)
+        self.items = self.__items__(self.raw)
         self.limit = self.raw['limit']
         self.next = self.raw['next']
-        self.cursor = {'after': self.raw['cursor']['after']}
+        self.cursor = {'after': self.raw['cursors']['after']}
         self.total = self.raw['total']
 
     def __paging__(self, url):

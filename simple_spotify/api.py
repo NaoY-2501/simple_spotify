@@ -51,9 +51,9 @@ class Spotify(SpotifyBase):
         """
         Get tracks which is contained album
         :param album_id: The Spotify ID for album
-        :param limit: Maximum number of results to return. Default 20. min 1, max 50.
-        :param offset: The index of the first result to return. Default 0. max 10,000.
-        :param market: ISO 3166-1 alpha-2 country code
+        :param limit: Optional. Maximum number of results to return. Default 20. min 1, max 50.
+        :param offset: Optional. The index of the first result to return. Default 0. max 10,000.
+        :param market: Optional. ISO 3166-1 alpha-2 country code
         :return: Paging object with Track objects
         """
         endpoint = 'https://api.spotify.com/v1/albums/{id}/tracks'.format(
@@ -150,11 +150,11 @@ class Spotify(SpotifyBase):
         Get information about artist's albums
         Endpoint: GET https://api.spotify.com/v1/artists/{id}/albums
         :param artist_id: The Spotify ID for artist
-        :param include_groups: List of filter the response.
+        :param include_groups: Optional. List of filter the response.
                                Valid values are album, single, appears_on, compilation
-        :param limit: Maximum number of results to return. Default 20. min 1, max 50.
-        :param offset: The index of the first result to return. Default 0. max 10,000.
-        :param country: ISO 3166-1 alpha-2 country code
+        :param limit: Optional. Maximum number of results to return. Default 20. min 1, max 50.
+        :param offset: Optional. The index of the first result to return. Default 0. max 10,000.
+        :param country: Optional. ISO 3166-1 alpha-2 country code
         :return: Paging object with SimplifiedAlbum objects.
         """
         endpoint = 'https://api.spotify.com/v1/artists/{id}/albums'.format(
@@ -210,7 +210,7 @@ class Spotify(SpotifyBase):
         Get information about an artist's top tracks.
         Endpoint: GET https://api.spotify.com/v1/artists/{id}/top-tracks
         :param artist_id: The Spotify ID for artist
-        :param county_code: ISO 3166-1 alpha-2 country code
+        :param county_code: Optional. ISO 3166-1 alpha-2 country code
         :return: List of Track objects
         """
         endpoint = 'https://api.spotify.com/v1/artists/{artist_id}/top-tracks'.format(
@@ -256,10 +256,10 @@ class Spotify(SpotifyBase):
         """
         Endpoint: GET https://api.spotify.com/v1/browse/categories
         :param country: ISO 3166-1 alpha-2 country code
-        :param locale:  Language of categories.
+        :param locale:  Optional. Language of categories.
                         ISO 639-1 language code and an ISO 3166-1 alpha-2 country code, joined by an underscore.
-        :param limit: The maximum number of results to return. Default 20. min 1, max 50.
-        :param offset: The index of the first item to return. Default:0.
+        :param limit: Optional. The maximum number of results to return. Default 20. min 1, max 50.
+        :param offset: Optional. The index of the first item to return. Default:0.
         :return: paging object with Category object
         """
         endpoint = 'https://api.spotify.com/v1/browse/categories'
@@ -341,8 +341,8 @@ class Spotify(SpotifyBase):
         """
 
         :param country: ISO 3166-1 alpha-2 country code
-        :param limit: The maximum number of results to return. Default 20. min 1, max 50.
-        :param offset: The index of the first item to return. Default:0.
+        :param limit: Optional. The maximum number of results to return. Default 20. min 1, max 50.
+        :param offset: Optional. The index of the first item to return. Default:0.
         :return: CustomPaging object with SimplifiedAlbum object
         """
         endpoint = 'https://api.spotify.com/v1/browse/new-releases'
@@ -368,9 +368,9 @@ class Spotify(SpotifyBase):
         """
         Endpoint: GET https://api.spotify.com/v1/browse/categories/{category_id}/playlists
         :param category_id: The Spotify Category ID (e.g. pop, rock, j_tracks)
-        :param limit: maximum number of results to return. Default 20. min 1, max 50.
-        :param offset: The index of the first result to return. Default 0.
-        :param country: ISO 3166-1 alpha-2 country code
+        :param limit: Optional. Maximum number of results to return. Default 20. min 1, max 50.
+        :param offset: Optional. The index of the first result to return. Default 0.
+        :param country: Optional. ISO 3166-1 alpha-2 country code
         :return: pagination object with SimplifiedPlaylist objects
         """
         endpoint = 'https://api.spotify.com/v1/browse/categories/{category_id}/playlists'.format(
@@ -397,11 +397,11 @@ class Spotify(SpotifyBase):
         """
         Get featured playlists.
         Endpoint: GET https://api.spotify.com/v1/browse/featured-playlists
-        :param locale: ISO 639-1 language code and an uppercase ISO 3166-1 alpha-2 country code. (e.g. ja_JP, en_US)
-        :param country: an ISO 3166-1 alpha-2 country code.
-        :param timestamp: DateTime object
-        :param limit: The maximum number of results to return. Default 20. min 1, max 50.
-        :param offset: The index of the first result to return. Default 0.
+        :param locale: Optional. ISO 639-1 language code and an uppercase ISO 3166-1 alpha-2 country code. (e.g. ja_JP, en_US)
+        :param country: Optional. An ISO 3166-1 alpha-2 country code.
+        :param timestamp: Optional. DateTime object
+        :param limit: Optional. The maximum number of results to return. Default 20. min 1, max 50.
+        :param offset: Optional. The index of the first result to return. Default 0.
         :return: CustomPaging object with SimplifiedPlaylist objects
         """
         endpoint = 'https://api.spotify.com/v1/browse/featured-playlists'
@@ -511,11 +511,12 @@ class Spotify(SpotifyBase):
         :param after: The last ID retrieved from the previous request.
         :return: CursorBasedPaging object with Artist object
         """
-        endpoint = 'https://api.spotify.com/v1/me/following?type=artist'
+        endpoint = 'https://api.spotify.com/v1/me/following'
         # validate limit
         limit = validate_limit(limit)
 
         queries = {
+            'type': 'artist',
             'limit': limit
         }
         if after:
@@ -536,15 +537,12 @@ class Spotify(SpotifyBase):
         :return:
         """
         endpoint = 'https://api.spotify.com/v1/me/following'
-        params = {
-            'artist_ids': artist_ids
-        }
-        data = json.dumps(params).encode('utf-8')
         query_param = {
+            'ids': ','.join(artist_ids),
             'type': 'artist'
         }
         full_url = self.make_full_url(endpoint, urllib.parse.urlencode(query_param))
-        response = http_request(self.authorization, full_url, data=data, method='PUT')
+        response = http_request(self.authorization, full_url, method='PUT')
         return response
 
     @auth_validation(['user-follow-modify'])
@@ -558,15 +556,12 @@ class Spotify(SpotifyBase):
         :return:
         """
         endpoint = 'https://api.spotify.com/v1/me/following'
-        params = {
-            'user_ids': user_ids
-        }
-        data = json.dumps(params).encode('utf-8')
         query_param = {
+            'ids': ','.join(user_ids),
             'type': 'user'
         }
         full_url = self.make_full_url(endpoint, urllib.parse.urlencode(query_param))
-        response = http_request(self.authorization, full_url, data=data, method='PUT')
+        response = http_request(self.authorization, full_url, method='PUT')
         return response
 
     @auth_validation(['play-list-modify-public', 'playlist-modify-private'])
@@ -577,7 +572,7 @@ class Spotify(SpotifyBase):
         Follow playlist
         Endpoint: PUT https://api.spotify.com/v1/playlists/{playlist_id}/followers
         :param playlist_id: The Spotify ID for playlist
-        :param is_public: If true the playlist will be includes in user's public playlist,
+        :param is_public: Optional. If true the playlist will be includes in user's public playlist,
                if false it will remain private. Defaults to True.
         :return:
         """
@@ -599,15 +594,12 @@ class Spotify(SpotifyBase):
         :return:
         """
         endpoint = 'https://api.spotify.com/v1/me/following'
-        params = {
-            'artist_ids': artist_ids
-        }
-        data = json.dumps(params).encode('utf-8')
         query_param = {
+            'ids': ','.join(artist_ids),
             'type': 'artist'
         }
         full_url = self.make_full_url(endpoint, urllib.parse.urlencode(query_param))
-        response = http_request(self.authorization, full_url, data=data, method='DELETE')
+        response = http_request(self.authorization, full_url, method='DELETE')
         return response
 
     @auth_validation(['user-follow-modify'])
@@ -621,15 +613,12 @@ class Spotify(SpotifyBase):
         :return:
         """
         endpoint = 'https://api.spotify.com/v1/me/following'
-        params = {
-            'user_ids': user_ids
-        }
-        data = json.dumps(params).encode('utf-8')
         query_param = {
+            'ids': ','.join(user_ids),
             'type': 'user'
         }
         full_url = self.make_full_url(endpoint, urllib.parse.urlencode(query_param))
-        response = http_request(self.authorization, full_url, data=data, method='DELETE')
+        response = http_request(self.authorization, full_url, method='DELETE')
         return response
 
     @auth_validation(['play-list-modify-public', 'playlist-modify-private'])
@@ -640,7 +629,7 @@ class Spotify(SpotifyBase):
         Unfollow playlist
         Endpoint: PUT https://api.spotify.com/v1/playlists/{playlist_id}/followers
         :param playlist_id: The Spotify ID for playlist
-        :param is_public: If true the playlist will be includes in user's public playlist,
+        :param is_public: Optional. If true the playlist will be includes in user's public playlist,
                if false it will remain private. Defaults to True.
         :return:
         """
@@ -697,9 +686,9 @@ class Spotify(SpotifyBase):
         """
         Get a list of the albums saved in the current user.
         Endpoint: GET https://api.spotify.com/v1/me/albums
-        :param limit: The number of entity to return. maximum is 50.
-        :param offset: The index of the first object to return.
-        :param market: an ISO 3166-1 alpha-2 country code.
+        :param limit: Optional. The number of entity to return. maximum is 50.
+        :param offset: Optional. The index of the first object to return.
+        :param market: optional. An ISO 3166-1 alpha-2 country code.
         :return: Paging object with Album objects
         """
         endpoint = 'https://api.spotify.com/v1/me/albums'
@@ -725,9 +714,9 @@ class Spotify(SpotifyBase):
         """
         Get a list of the tracks saved in the current user.
         Endpoint: GET https://api.spotify.com/v1/me/tracks
-        :param limit: The number of entity to return. maximum is 50.
-        :param offset: The index of the first object to return.
-        :param market: an ISO 3166-1 alpha-2 country code.
+        :param limit: Optional. The number of entity to return. maximum is 50.
+        :param offset: Optional. The index of the first object to return.
+        :param market: Optional. An ISO 3166-1 alpha-2 country code.
         :return: Paging object with Track objects
         """
         endpoint = 'https://api.spotify.com/v1/me/tracks'
@@ -816,9 +805,9 @@ class Spotify(SpotifyBase):
         """
 
         :param entity_type: artists or tracks
-        :param limit: The number of entity to return. maximum is 50.
-        :param offset:
-        :param time_range: over what time frame the affinities are computed.
+        :param limit: Optional. The number of entity to return. maximum is 50.
+        :param offset: Optional. The index of the first result to return. Default 0.
+        :param time_range: Optional. over what time frame the affinities are computed.
                short_term(last 4 weeks), medium_term(last 6 months), long_term(last several years)
         :return: Paging object with Artist object or Track object
         """
@@ -861,9 +850,9 @@ class Spotify(SpotifyBase):
         Get information about artists, albums, tracks, playlist with match a keyword string.
         :param q: Search keyword
         :param search_types: Iterable object contains search type. Default is ['album', 'artist', 'playlist', 'track'].
-        :param market: ISO 3166-1 alpha-2 country code
-        :param limit: The maximum number of results to return. Default 20. min 1, max 50.
-        :param offset: The index of the first result to return. Default 0. max 10,000.
+        :param market: Optional. ISO 3166-1 alpha-2 country code
+        :param limit: Optional. The maximum number of results to return. Default 20. min 1, max 50.
+        :param offset: Optional. The index of the first result to return. Default 0. max 10,000.
         :return: SearchResult objects
         """
         endpoint = 'https://api.spotify.com/v1/search'

@@ -48,8 +48,7 @@ def token_refresh(func):
             now = datetime.now()
             if auth.created_at + timedelta(seconds=auth.expires_in) < now:
                 auth.token_refresh()
-        result = func(self, *args, **kwargs)
-        return result
+        return func(self, *args, **kwargs)
     return wrapper
 
 
@@ -59,11 +58,13 @@ def auth_validation(scopes):
             if not isinstance(self.authorization, AuthorizationCodeFlow):
                 raise ValidationError('This endpoint is only for AuthorizationCodeFlow')
             for scope in scopes:
-                if scope in self.authorization.scope:
-                    return func(self, *args, **kwargs)
-            raise ValidationError("Your authorization's scope does not have {scope}".format(
-                scope=','.join(scopes)
-            ))
+                if scope in self.authorization.scope.split(' '):
+                    continue
+                else:
+                    raise ValidationError("Your authorization's scope does not have {scope}".format(
+                        scope=','.join(scope)
+                    ))
+            return func(self, *args, **kwargs)
         return wrapper
     return _validate
 
