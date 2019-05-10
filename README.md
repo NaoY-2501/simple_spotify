@@ -15,11 +15,12 @@ python setup.py install
 from simple_spotify.api import Spotify
 from simple_spotify.authorization import ClientCredentialsFlow
 
-auth = ClientCredentialsFlow(
+res = ClientCredentialsFlow.token_request(
     'YOUR CLIENT ID',
     'YOUR CLIENT SECRET'
 )
 
+auth = ClientCredentialsFlow(**res)
 sp = Spotify(auth)
 
 result = sp.search(q='sora tob sakana')
@@ -78,13 +79,8 @@ from simple_spotify.authorization import AuthorizationCodeFlow
 with open('simple-spotify_code.json') as f:
     auth_dict = json.load(f)
 
-auth = AuthorizationCodeFlow(
-    auth_dict['client_id'],
-    auth_dict['client_secret'],
-    auth_dict['code'],
-    auth_dict['redirect_uri']
-)
-
+res = AuthorizationCodeFlow.token_request(**auth_dict)
+auth = AuthorizationCodeFlow(**res)
 sp = Spotify(auth)
 
 current_user = sp.get_current_user_profile()
