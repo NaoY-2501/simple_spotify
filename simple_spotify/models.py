@@ -193,7 +193,7 @@ class AudioFeature(ObjectBase):
         return self.raw['type']
 
     @property
-    def key_str(self):
+    def key_name(self):
         return PITCH_CLASS.get(self.key)
 
     @property
