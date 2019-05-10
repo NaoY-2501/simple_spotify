@@ -60,11 +60,12 @@ class AuthorizationCodeFlow(SpotifyAuthBase):
         self.code = code
         self.created_at = datetime.now()
         self.redirect_uri = redirect_uri
-        self.access_token = self.token_request()['access_token']
-        self.token_type = self.token_request()['token_type']
-        self.expires_in = self.token_request()['expires_in']
-        self.scope = self.token_request()['scope']
-        self.refresh_token = self.token_request()['refresh_token']
+        self.tokens = self.token_request()
+        self.access_token = self.tokens['access_token']
+        self.token_type = self.tokens['token_type']
+        self.expires_in = self.tokens['expires_in']
+        self.scope = self.tokens['scope']
+        self.refresh_token = self.tokens['refresh_token']
 
     @property
     def authorization(self):
