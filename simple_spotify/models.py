@@ -201,7 +201,7 @@ class AudioFeature(ObjectBase):
         return self.duration_ms/1000
 
     @property
-    def duration_minutes(self):
+    def duration_min(self):
         return str(datetime.timedelta(seconds=self.duration_s))
 
 
