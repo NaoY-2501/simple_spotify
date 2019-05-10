@@ -6,7 +6,7 @@ from .authorization import AuthorizationCodeFlow
 from .consts import TUNEABLE_ATTRS
 from .errors import PathParameterNotAssignedError, ValidationError, PathParameterError, RecommendationAttributeError
 
-ATTR_PAT = re.compile(r'(?P<prefix>^[\w]{3}_)(?P<attr>[\w]+)')
+ATTR_PAT = re.compile(r'(?P<prefix>^(min|max|target)_)(?P<attr>[\w]+)')
 
 
 def id_validation(param):
@@ -71,10 +71,11 @@ def auth_validation(scopes):
 def recommendations_validation(func):
     def wrapper(self, limit=20, market=None, seed_artists=None, seed_genres=None, seed_tracks=None, **kwargs):
         tuneable_attrs = locals()['kwargs'].keys()
+        prefixes = ['min_', 'max_', 'target_']
         try:
-            attrs = [ATTR_PAT.search(attr).group('attr') for attr in tuneable_attrs]
-            for attr in attrs:
-                if attr not in TUNEABLE_ATTRS:
+            s = [ATTR_PAT.search(attr) for attr in tuneable_attrs]
+            for attr in s:
+                if attr.group('prefix') not in prefixes or attr.group('attr') not in TUNEABLE_ATTRS:
                     raise AttributeError
         except AttributeError:
             msg = 'Invalid Tuneable attribution: {attrs}'.format(
