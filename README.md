@@ -6,7 +6,7 @@ Pure Python wrapper library for Spotify Web API.
 ## Installation
 
 ```
-python setup.py install
+pip install simple_spotify
 ```
 
 ## Quick Start
@@ -92,4 +92,6 @@ current_user = sp.get_current_user_profile()
 -  **v.0.1.0** (May 09, 2019): Initial release: 
 
 -  **v.0.1.1** (May 10, 2019): Create sample web app, fix authorization.py
+
+-  **v.0.1.2** (May 10, 2019): Upload to PyPI
 
