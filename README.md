@@ -93,5 +93,7 @@ current_user = sp.get_current_user_profile()
 
 ## Version
 
--  **v.0.1.0** (May 9, 2019): Initial release: 
+-  **v.0.1.0** (May 09, 2019): Initial release: 
+
+-  **v.0.1.1** (May 10, 2019): Create sample web app, fix authorization.py
 
