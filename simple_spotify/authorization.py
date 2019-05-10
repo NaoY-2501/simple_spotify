@@ -36,57 +36,54 @@ class SpotifyAuthBase:
 
 
 class ClientCredentialsFlow(SpotifyAuthBase):
-    def __init__(self, client_id, client_secret):
-        self.client_id = client_id
-        self.client_secret = client_secret
-        self.access_token = self.token_request()['access_token']
-        self.token_type = self.token_request()['token_type']
-        self.expires_in = self.token_request()['expires_in']
+    def __init__(self, access_token, token_type, expires_in, scope):
+        self.access_token = access_token
+        self.token_type = token_type
+        self.expires_in = expires_in
+        self.scope = scope
 
     @property
     def authorization(self):
         return {'Authorization': 'Bearer {}'.format(self.access_token)}
 
-    def token_request(self):
-        headers = self.get_header_param(self.client_id, self.client_secret)
+    @classmethod
+    def token_request(cls, client_id, client_secret):
+        headers = cls.get_header_param(client_id, client_secret)
         request_body = {'grant_type': 'client_credentials'}
-        return self.get_response(headers, request_body)
+        return cls.get_response(headers, request_body)
 
 
 class AuthorizationCodeFlow(SpotifyAuthBase):
-    def __init__(self, client_id, client_secret, code, redirect_uri):
-        self.client_id = client_id
-        self.client_secret = client_secret
-        self.code = code
-        self.created_at = datetime.now()
-        self.redirect_uri = redirect_uri
-        self.tokens = self.token_request()
-        self.access_token = self.tokens['access_token']
-        self.token_type = self.tokens['token_type']
-        self.expires_in = self.tokens['expires_in']
-        self.scope = self.tokens['scope']
-        self.refresh_token = self.tokens['refresh_token']
+    def __init__(self, access_token, created_at, expires_in, scope, refresh_token, headers, token_type):
+        self.access_token = access_token
+        self.expires_in = expires_in
+        self.scope = scope
+        self.refresh_token = refresh_token
+        self.created_at = created_at
+        self.headers = headers
+        self.token_type = token_type
 
     @property
     def authorization(self):
         return {'Authorization': 'Bearer {}'.format(self.access_token)}
 
-    def token_request(self):
-        headers = self.get_header_param(self.client_id, self.client_secret)
+    @classmethod
+    def token_request(cls, client_id, client_secret, redirect_uri, code):
+        headers = cls.get_header_param(client_id, client_secret)
         request_body = {
             'grant_type': 'authorization_code',
-            'code': self.code,
-            'redirect_uri': self.redirect_uri,
-            'client_id': self.client_id,
-            'client_secret': self.client_secret
+            'code': code,
+            'redirect_uri': redirect_uri,
         }
-        return self.get_response(headers, request_body)
+        response = cls.get_response(headers, request_body)
+        response['headers'] = headers
+        response['created_at'] = datetime.now().strftime('%Y%m%d%H%M%S')
+        return response
 
     def token_refresh(self):
-        headers = self.get_header_param(self.client_id, self.client_secret)
         request_body = {
             'grant_type': 'refresh_token',
             'refresh_token': self.refresh_token,
         }
-        self.access_token = self.get_response(headers, request_body)['access_token']
-        self.created_at = datetime.now()
+        self.access_token = self.get_response(self.headers, request_body)['access_token']
+        self.created_at = datetime.now().strftime('%Y%m%d%H%M%S')

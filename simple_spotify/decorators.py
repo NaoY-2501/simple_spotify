@@ -46,7 +46,8 @@ def token_refresh(func):
         auth = self.authorization
         if isinstance(auth, AuthorizationCodeFlow):
             now = datetime.now()
-            if auth.created_at + timedelta(seconds=auth.expires_in) < now:
+            created_at = datetime.strptime(auth.created_at, '%Y%m%d%H%M%S')
+            if created_at + timedelta(seconds=auth.expires_in) < now:
                 auth.token_refresh()
         return func(self, *args, **kwargs)
     return wrapper
