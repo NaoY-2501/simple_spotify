@@ -81,7 +81,7 @@ def main():
     }
 
     current_dir = os.path.curdir
-    fname = '{current_dir}simple_spotify_code.json'.format(
+    fname = '{current_dir}/simple_spotify_code.json'.format(
         current_dir=current_dir
     )
     with open(fname, 'w') as fout:
