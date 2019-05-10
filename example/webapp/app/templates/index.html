@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sample App</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+</head>
+<body>
+
+
+<div class="container">
+<h1>Sample App with Simple-Spotify</h1>
+
+{% if name %}
+
+<h2>Hello ! {{ name }}</h2>
+<a href="/logout">Log out</a>
+
+    <h3>Your Top Artists (Last 6 months)</h3>
+
+    <div class="col-lg-12">
+        <div class="card-deck">
+            {% for artist in artists %}
+            <div class="col-lg-6">
+                <div class="card lg-6">
+                    <div class="card-header">
+                        <div align="center">
+                            <a href="https://open.spotify.com/artist/{{ artist.artist_id }}/" target="_blank" class="btn btn-primary">{{ artist.name }}</a>
+                        </div>
+                    </div>
+                    <div align="center">
+                        <img src={{ artist.images[0].url }} width=150 height=150>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <h3>Your Top Tracks (Last 6 months)</h3>
+
+        <table class="table">
+            {% for track in tracks %}
+            <tr>
+                <td>
+                    <a href="https://open.spotify.com/album/{{ track.album.album_id }}" target="_blank">
+                    <img src={{ track.album.images[0].url }}  width=150 height=150></td>
+                    </a>
+                <td>
+                    <a href="https://open.spotify.com/artist/{{ track.track_id }}/" target="_blank" class="btn btn-success">
+                    {{ track.name }}
+                    </a>
+                </td>
+                <td>
+                    <a href="https://open.spotify.com/artist/{{ track.artists[0].artist_id }}/" target="_blank" class="btn btn-info">
+                    {{ track.artists[0].name }}
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+
+    </div>
+
+
+
+{% else %}
+<h2><a href={{ auth_url }}>Sign In</a></h2>
+{% endif %}
+
+</div>
+</body>
+</html>
