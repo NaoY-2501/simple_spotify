@@ -93,5 +93,5 @@ current_user = sp.get_current_user_profile()
 
 ## Version
 
--  **v.1.0** (May 9, 2019): Initial release: 
+-  **v.0.1.0** (May 9, 2019): Initial release: 
 
