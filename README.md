@@ -95,3 +95,5 @@ current_user = sp.get_current_user_profile()
 
 -  **v.0.1.2** (May 10, 2019): Upload to PyPI
 
+-  **v.0.1.3** (May 11, 2019): Bugfix on simple_spotify.api
+

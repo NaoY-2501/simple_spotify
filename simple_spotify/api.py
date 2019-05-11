@@ -89,7 +89,7 @@ class Spotify(SpotifyBase):
         endpoint = 'https://api.spotify.com/v1/albums'
 
         query = {
-            'album_ids': ','.join(album_ids)
+            'ids': ','.join(album_ids)
         }
 
         data = urllib.parse.urlencode(query)
@@ -654,7 +654,7 @@ class Spotify(SpotifyBase):
         """
         endpoint = 'https://api.spotify.com/v1/me/albums/contains'
         query = {
-            'album_ids': ','.join(album_ids)
+            'ids': ','.join(album_ids)
         }
         data = urllib.parse.urlencode(query)
         full_url = self.make_full_url(endpoint, data)
@@ -673,7 +673,7 @@ class Spotify(SpotifyBase):
         """
         endpoint = 'https://api.spotify.com/v1/me/albums/contains'
         query = {
-            'track_ids': ','.join(track_ids)
+            'ids': ','.join(track_ids)
         }
         data = urllib.parse.urlencode(query)
         full_url = self.make_full_url(endpoint, data)
@@ -926,7 +926,7 @@ class Spotify(SpotifyBase):
         """
         endpoint = 'https://api.spotify.com/v1/tracks'
         query = {
-            'track_ids': ','.join(track_ids)
+            'ids': ','.join(track_ids)
         }
         data = urllib.parse.urlencode(query)
         full_url = self.make_full_url(endpoint, data)
