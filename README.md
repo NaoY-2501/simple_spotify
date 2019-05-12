@@ -6,7 +6,7 @@ Pure Python wrapper library for Spotify Web API.
 ## Installation
 
 ```
-pip install simple_spotify
+pip install simple-spotify
 ```
 
 ## Quick Start
