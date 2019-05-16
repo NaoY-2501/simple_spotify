@@ -31,16 +31,23 @@ class Spotify(SpotifyBase):
 
     @id_validation('album id')
     @token_refresh
-    def get_album(self, album_id):
+    def get_album(self, album_id, market=None):
         """
         Get album information
         Endpoint: GET https://api.spotify.com/v1/albums/{id}
         :param album_id:  The Spotify ID for album
+        :param market: Optional. ISO 3166-1 alpha-2 country code
         :return: Album object
         """
         endpoint = 'https://api.spotify.com/v1/albums/{id}'.format(
             id=album_id
         )
+        if market:
+            query ={
+                'market': market
+            }
+            data = urllib.parse.urlencode(query)
+            endpoint = self.make_full_url(endpoint, data)
         response = http_request(self.authorization, endpoint)
         result = Album(response, self.authorization)
         return result
@@ -79,20 +86,22 @@ class Spotify(SpotifyBase):
 
     @ids_validation(50)
     @token_refresh
-    def get_albums(self, album_ids):
+    def get_albums(self, album_ids, market=None):
         """
         Get several albums information.
         Endpoint:GET https://api.spotify.com/v1/albums
         :param album_ids: List of the Spotify IDs for album. Maximum length is 50.
+        :param market: Optional. ISO 3166-1 alpha-2 country code
         :return: List of Album objects
         """
         endpoint = 'https://api.spotify.com/v1/albums'
 
-        query = {
+        queries = {
             'ids': ','.join(album_ids)
         }
-
-        data = urllib.parse.urlencode(query)
+        if market:
+            queries['market'] = market
+        data = urllib.parse.urlencode(queries)
         full_url = self.make_full_url(endpoint, data)
         response = http_request(self.authorization, full_url)
         converter = Album.to_object
@@ -664,18 +673,21 @@ class Spotify(SpotifyBase):
     @auth_validation(['user-library-read'])
     @ids_validation(50)
     @token_refresh
-    def check_users_saved_tracks(self, track_ids):
+    def check_users_saved_tracks(self, track_ids, market=None):
         """
         Check albums already saved in the current 'Your Music' library
         Endpoint: GET https://api.spotify.com/v1/me/tracks/contains
         :param track_ids: List of Spotify IDs for tracks
+        :param market: optional. An ISO 3166-1 alpha-2 country code.
         :return: List of boolean object
         """
         endpoint = 'https://api.spotify.com/v1/me/albums/contains'
-        query = {
+        queries = {
             'ids': ','.join(track_ids)
         }
-        data = urllib.parse.urlencode(query)
+        if market:
+            queries['market'] = market
+        data = urllib.parse.urlencode(queries)
         full_url = self.make_full_url(endpoint, data)
         response = http_request(self.authorization, full_url)
         return response
@@ -901,34 +913,44 @@ class Spotify(SpotifyBase):
 
     @id_validation('track id')
     @token_refresh
-    def get_track(self, track_id):
+    def get_track(self, track_id, market=None):
         """
         Get track information.
         Endpoint: GET https://api.spotify.com/v1/tracks/{id}
         :param track_id: The Spotify ID for track
+        :param market: Optional. ISO 3166-1 alpha-2 country code
         :return: Track object
         """
         endpoint = 'https://api.spotify.com/v1/tracks/{track_id}'.format(
             track_id=track_id
         )
+        if market:
+            query = {
+                'market': market
+            }
+            data = urllib.parse.urlencode(query)
+            endpoint = self.make_full_url(endpoint, data)
         response = http_request(self.authorization, endpoint)
         result = Track(response)
         return result
 
     @ids_validation(50)
     @token_refresh
-    def get_tracks(self, track_ids):
+    def get_tracks(self, track_ids, market=None):
         """
         Get several track informations.
         Endpoint: GET https://api.spotify.com/v1/tracks
         :param track_ids: List of the Spotify IDs for track. Maximum length is 50.
+        :param market: Optional. ISO 3166-1 alpha-2 country code
         :return: List of Track object
         """
         endpoint = 'https://api.spotify.com/v1/tracks'
-        query = {
+        queries = {
             'ids': ','.join(track_ids)
         }
-        data = urllib.parse.urlencode(query)
+        if market:
+            queries['market'] = market
+        data = urllib.parse.urlencode(queries)
         full_url = self.make_full_url(endpoint, data)
         response = http_request(self.authorization, full_url)
         converter = Track.to_object
