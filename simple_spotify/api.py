@@ -4,12 +4,12 @@ import urllib.parse
 
 from .consts import SEARCH_TYPES, ENTITY_TYPES, TIME_RANGES
 from .decorators import id_validation, ids_validation, token_refresh, auth_validation, recommendations_validation
-from .errors import ValidationError
+from .errors import ValidationError, QueryParameterNotAssignedError
 from .models import Album, SimplifiedAlbum, Artist, SimplifiedTrack, Track, \
     AudioFeature, AudioAnalysis, SearchResult, Paging, CustomPaging, CursorBasedPaging, \
     PrivateUser, PublicUser, Category, RecommendationsResponse, SimplifiedPlaylist, \
     SavedAlbum, SavedTrack, Image, Playlist, PlaylistTrack
-from .util import http_request, validate_limit, validate_offset
+from .util import http_request, validate_limit, validate_offset, to_uri
 
 
 class SpotifyBase:
@@ -1143,3 +1143,37 @@ class Spotify(SpotifyBase):
         full_url = self.make_full_url(endpoint, data)
         response = http_request(self.authorization, full_url)
         return Paging(response, PlaylistTrack, self.authorization)
+
+    @id_validation('playlist_id')
+    def add_track_to_playlist(self, playlist_id, uris, position=None):
+        """
+        Endpoint: POST https://api.spotify.com/v1/playlists/{playlist_id}/tracks
+        :param playlist_id: The playlist's Spotify ID
+        :param uris: Optional. A list of the track's Spotify IDs or Spotify track URIs
+        :param position: Optional. The position to insert the tracks, a zero-based index.
+        :return:
+        """
+        endpoint = 'https://api.spotify.com/v1/playlists/{playlist_id}/tracks'.format(
+            playlist_id=playlist_id
+        )
+        if not uris:
+            raise QueryParameterNotAssignedError('uris does not assigned.')
+        if not isinstance(uris, list):
+            raise TypeError('uris must be list')
+        if not len(uris):
+            raise ValidationError("Length of uris need be more than 1.")
+        for each in uris:
+            if not isinstance(each, str):
+                raise ValidationError('URI must be str.')
+
+        uris = list(to_uri(uris, 'spotify:track:'))
+
+        queries = {
+            'uris': ','.join(uris)
+        }
+        if position:
+            queries['position'] = position
+        data = urllib.parse.urlencode(queries)
+        full_url = self.make_full_url(endpoint, data)
+        response = http_request(self.authorization, full_url, method='POST')
+        return response['snapshot_id']
