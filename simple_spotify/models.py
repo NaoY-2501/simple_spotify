@@ -601,15 +601,11 @@ class SimplifiedPlaylist(SimplifiedObjectBase):
         return self.raw['snapshot_id']
 
     @property
-    def tracks(self):
+    def tracks_dict(self):
         return {
             'href': self.raw['tracks']['href'],
             'total': self.raw['tracks']['total']
         }
-
-    @tracks.setter
-    def tracks(self, value):
-        self.tracks = value
 
 
 class Playlist(SimplifiedPlaylist):
@@ -617,7 +613,6 @@ class Playlist(SimplifiedPlaylist):
     def __init__(self, raw_json, auth):
         super(Playlist, self).__init__(raw_json)
         self.auth = auth
-        self.tracks = Paging(self.raw['tracks'], Track, self.auth)
 
     def __str__(self):
         return self.name
@@ -634,6 +629,10 @@ class Playlist(SimplifiedPlaylist):
     @property
     def name(self):
         return self.raw['name']
+
+    @property
+    def tracks(self):
+        return Paging(self.raw['tracks'], Track, self.auth)
 
 
 class AudioAnalysis(ObjectBase):
