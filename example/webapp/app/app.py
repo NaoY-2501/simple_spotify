@@ -11,9 +11,9 @@ from simple_spotify.authorization import AuthorizationCodeFlow
 
 AUTH_ENDPOINT = 'https://accounts.spotify.com/authorize'
 
-CLIENT_ID = 'YOUR CLIENT ID'
+CLIENT_ID = 'CLIENT_ID'
 
-CLIENT_SECRET = 'YOUR CLIENT SECRET'
+CLIENT_SECRET = 'CLIENT_SECRET'
 
 SCOPES = [
     'user-read-email',
@@ -23,6 +23,14 @@ SCOPES = [
 ]
 
 REDIRECT_URI = 'http://127.0.0.1:5000/callback/'
+
+TERM = 'short_term'
+
+TERM_DETAIL = {
+    'short_term': 'Last 4 weeks',
+    'medium_term': 'Last 6 months',
+    'long_term': 'Last few years',
+}
 
 app = Flask(__name__)
 app.secret_key = os.urandom(32)
@@ -53,12 +61,12 @@ def top():
         auth = AuthorizationCodeFlow(**session['response'])
         sp = Spotify(auth)
         user = sp.get_current_user_profile()
-        top_artists = sp.get_users_top('artists', time_range='medium_term')
+        top_artists = sp.get_users_top('artists', time_range=TERM)
         artists = top_artists.items
-        top_tracks = sp.get_users_top('tracks', time_range='medium_term')
+        top_tracks = sp.get_users_top('tracks', time_range=TERM)
         tracks = top_tracks.items
 
-        return render_template('index.html', name=user.display_name, artists=artists, tracks=tracks)
+        return render_template('index.html', name=user.display_name, artists=artists, tracks=tracks, term=TERM_DETAIL[TERM])
     else:
         seed = ''.join(random.choices(string.ascii_letters + string.digits, k=32))
         url = access_authorize_page(CLIENT_ID, REDIRECT_URI, SCOPES, seed)
