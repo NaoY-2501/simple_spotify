@@ -834,3 +834,21 @@ class SavedTrack(ObjectBase):
     @property
     def track(self):
         return Track(self.raw['track'])
+
+
+class PlaylistTrack(ObjectBase):
+    @property
+    def added_at(self):
+        return self.raw['added_at']
+
+    @property
+    def added_by(self):
+        return self.raw['added_by']
+
+    @property
+    def is_local(self):
+        return self.raw['is_local']
+
+    @property
+    def track(self):
+        return Track(self.raw['track'])
