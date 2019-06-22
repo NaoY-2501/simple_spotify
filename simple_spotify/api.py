@@ -1037,3 +1037,24 @@ class Spotify(SpotifyBase):
         )
         response = http_request(self.authorization, endpoint)
         return PublicUser(response)
+
+    # Playlists
+
+    @auth_validation(['playlist-read-private', 'playlist-read-collaborative'])
+    @token_refresh
+    def get_current_user_playlists(self, limit=20, offset=1):
+        """
+        Endpoint: https://api.spotify.com/v1/me/playlists
+        :param limit: The maximum number of playlists to return. Default is 20. Maximum is 50. Minimum is 1.
+        :param offset: The index of the first playlist to return. Default is 0. Maximum is 10,000
+        :return: Paging object with SimplifiedPlaylist objects
+        """
+        endpoint = 'https://api.spotify.com/v1/me/playlists'
+        queries = {
+            'limit': limit,
+            'offset': offset
+        }
+        data = urllib.parse.urlencode(queries)
+        full_url = self.make_full_url(endpoint, data)
+        response = http_request(self.authorization, full_url)
+        return Paging(response, SimplifiedPlaylist, self.authorization)
