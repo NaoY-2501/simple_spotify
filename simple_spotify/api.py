@@ -1118,7 +1118,7 @@ class Spotify(SpotifyBase):
             data = urllib.parse.urlencode(query)
             endpoint = self.make_full_url(endpoint, data)
         response = http_request(self.authorization, endpoint)
-        return Paging(response, Playlist, self.authorization)
+        return Playlist(response, self.authorization)
 
     @id_validation('playlist_id')
     def get_playlist_tracks(self, playlist_id, limit=20, offset=1, market=None):

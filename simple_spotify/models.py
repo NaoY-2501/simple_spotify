@@ -607,8 +607,17 @@ class SimplifiedPlaylist(SimplifiedObjectBase):
             'total': self.raw['tracks']['total']
         }
 
+    @tracks.setter
+    def tracks(self, value):
+        self.tracks = value
+
 
 class Playlist(SimplifiedPlaylist):
+
+    def __init__(self, raw_json, auth):
+        super(Playlist, self).__init__(raw_json)
+        self.auth = auth
+        self.tracks = Paging(self.raw['tracks'], Track, self.auth)
 
     def __str__(self):
         return self.name
