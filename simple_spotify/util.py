@@ -23,7 +23,7 @@ def http_request(authorization, url, data=None, method='GET'):
     return response
 
 
-def post_request(authorization, url, data=None):
+def post_json(authorization, url, data=None):
     headers = authorization.authorization
     headers['Content-Type'] = 'application/json'
     req = urllib.request.Request(

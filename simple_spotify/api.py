@@ -4,12 +4,12 @@ import urllib.parse
 
 from .consts import SEARCH_TYPES, ENTITY_TYPES, TIME_RANGES
 from .decorators import id_validation, ids_validation, token_refresh, auth_validation, recommendations_validation
-from .errors import ValidationError, QueryParameterNotAssignedError
+from .errors import ValidationError, QueryParameterNotAssignedError, BodyParameterNotAssignedError
 from .models import Album, SimplifiedAlbum, Artist, SimplifiedTrack, Track, \
     AudioFeature, AudioAnalysis, SearchResult, Paging, CustomPaging, CursorBasedPaging, \
     PrivateUser, PublicUser, Category, RecommendationsResponse, SimplifiedPlaylist, \
     SavedAlbum, SavedTrack, Image, Playlist, PlaylistTrack
-from .util import http_request, validate_limit, validate_offset, to_uri
+from .util import http_request, validate_limit, validate_offset, to_uri, post_json
 
 
 class SpotifyBase:
@@ -1039,6 +1039,33 @@ class Spotify(SpotifyBase):
         return PublicUser(response)
 
     # Playlists
+
+    @auth_validation(['playlist-modify-public', 'playlist-modify-private'])
+    @id_validation('user_id')
+    @token_refresh
+    def create_playlist(self, user_id, name=None, description="", public=True, collaborative=False):
+        """
+        Endpoint: POST https://api.spotify.com/v1/users/{user_id}/playlists
+        :param user_id: The user's spotify ID
+        :param name: The name of new playlist
+        :param description: Optional. Description for playlist as displayed in Spotify.
+        :param public: Optional. Defaults to True. If True, the playlist will be public.
+        :param collaborative: Optional. Defaults to False.
+               If True, the playlist will be collaborative (Other users can edit the playlist).
+        :return:
+        """
+        endpoint = 'https://api.spotify.com/v1/users/{user_id}/playlists'.format(user_id=user_id)
+        if not name:
+            raise BodyParameterNotAssignedError('name is not assigned.')
+
+        body_params = {
+            'name': name,
+            'description': description,
+            'public': public,
+            'collaborative': collaborative
+        }
+        res = post_json(self.authorization, endpoint, body_params)
+        return res
 
     @auth_validation(['playlist-read-private', 'playlist-read-collaborative'])
     @token_refresh
