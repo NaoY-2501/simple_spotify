@@ -98,3 +98,5 @@ current_user = sp.get_current_user_profile()
 -  **v.0.1.3** (May 11, 2019): Bugfix on simple_spotify.api
 
 -  **v.0.1.4** (May 17, 2019): Added keyword argument `market` to following methods. `get_album` , `get_albums`, `get_track`, `get_tracks`
+
+-  **v.0.1.5** (June 22, 2019): Implement Playlists API

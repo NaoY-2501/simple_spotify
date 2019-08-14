@@ -32,3 +32,7 @@ class PathParameterError(ExceptionBase):
 
 class RecommendationAttributeError(ExceptionBase):
     pass
+
+
+class QueryParameterNotAssignedError(ExceptionBase):
+    pass

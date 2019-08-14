@@ -23,7 +23,7 @@ def http_request(authorization, url, data=None, method='GET'):
     return response
 
 
-def post_request(authorization, url, data=None):
+def post_json(authorization, url, data=None):
     headers = authorization.authorization
     headers['Content-Type'] = 'application/json'
     req = urllib.request.Request(
@@ -52,3 +52,12 @@ def validate_offset(offset, maximum=None):
     if maximum and offset > maximum:
         offset = maximum
     return offset
+
+
+def to_uri(targets, prefix):
+    for target in targets:
+        if prefix not in target:
+            uri = '{}{}'.format(prefix, target)
+        else:
+            uri = target
+    yield uri

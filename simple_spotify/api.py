@@ -4,12 +4,12 @@ import urllib.parse
 
 from .consts import SEARCH_TYPES, ENTITY_TYPES, TIME_RANGES
 from .decorators import id_validation, ids_validation, token_refresh, auth_validation, recommendations_validation
-from .errors import ValidationError
+from .errors import ValidationError, QueryParameterNotAssignedError, BodyParameterNotAssignedError
 from .models import Album, SimplifiedAlbum, Artist, SimplifiedTrack, Track, \
     AudioFeature, AudioAnalysis, SearchResult, Paging, CustomPaging, CursorBasedPaging, \
     PrivateUser, PublicUser, Category, RecommendationsResponse, SimplifiedPlaylist, \
-    SavedAlbum, SavedTrack
-from .util import http_request, validate_limit, validate_offset
+    SavedAlbum, SavedTrack, Image, Playlist, PlaylistTrack
+from .util import http_request, validate_limit, validate_offset, to_uri, post_json
 
 
 class SpotifyBase:
@@ -1037,3 +1037,170 @@ class Spotify(SpotifyBase):
         )
         response = http_request(self.authorization, endpoint)
         return PublicUser(response)
+
+    # Playlists
+
+    @auth_validation(['playlist-modify-public', 'playlist-modify-private'])
+    @id_validation('user_id')
+    @token_refresh
+    def create_playlist(self, user_id, name=None, description="", public=True, collaborative=False):
+        """
+        Endpoint: POST https://api.spotify.com/v1/users/{user_id}/playlists
+        :param user_id: The user's spotify ID
+        :param name: The name of new playlist
+        :param description: Optional. Description for playlist as displayed in Spotify.
+        :param public: Optional. Defaults to True. If True, the playlist will be public.
+        :param collaborative: Optional. Defaults to False.
+               If True, the playlist will be collaborative (Other users can edit the playlist).
+        :return:
+        """
+        endpoint = 'https://api.spotify.com/v1/users/{user_id}/playlists'.format(user_id=user_id)
+        if not name:
+            raise BodyParameterNotAssignedError('name is not assigned.')
+
+        body_params = {
+            'name': name,
+            'description': description,
+            'public': public,
+            'collaborative': collaborative
+        }
+        res = post_json(self.authorization, endpoint, body_params)
+        return res
+
+    @auth_validation(['playlist-read-private', 'playlist-read-collaborative'])
+    @token_refresh
+    def get_current_user_playlists(self, limit=20, offset=1):
+        """
+        Endpoint: GET https://api.spotify.com/v1/me/playlists
+        :param limit: The maximum number of playlists to return. Default is 20. Maximum is 50. Minimum is 1.
+        :param offset: The index of the first playlist to return. Default is 0. Maximum is 10,000
+        :return: Paging object with SimplifiedPlaylist objects
+        """
+        endpoint = 'https://api.spotify.com/v1/me/playlists'
+        queries = {
+            'limit': limit,
+            'offset': offset
+        }
+        data = urllib.parse.urlencode(queries)
+        full_url = self.make_full_url(endpoint, data)
+        response = http_request(self.authorization, full_url)
+        return Paging(response, SimplifiedPlaylist, self.authorization)
+
+    @auth_validation(['playlist-read-private', 'playlist-read-collaborative'])
+    @id_validation('user_id')
+    @token_refresh
+    def get_users_playlists(self, user_id, limit=20, offset=0):
+        """
+        Endpoint: GET https://api.spotify.com/v1/users/{user_id}/playlists
+        :param user_id: The user's Spotify ID
+        :param limit: The maximum number of playlists to return. Default is 20. Maximum is 50. Minimum is 1.
+        :param offset: The index of the first playlist to return. Default is 0. Maximum is 10,000
+        :return: Paging object with SimplifiedPlaylist objects
+        """
+        endpoint = 'https://api.spotify.com/v1/users/{user_id}/playlists'.format(
+            user_id=user_id
+        )
+        queries = {
+            'limit': limit,
+            'offset': offset
+        }
+        data = urllib.parse.urlencode(queries)
+        full_url = self.make_full_url(endpoint, data)
+        response = http_request(self.authorization, full_url)
+        return Paging(response, SimplifiedPlaylist, self.authorization)
+
+    @id_validation('playlist_id')
+    def get_playlist_cover_image(self, playlist_id):
+        """
+        Endpoint: GET https://api.spotify.com/v1/playlists/{playlist_id}/images
+        :param playlist_id: The playlist's Spotify ID
+        :return: list of Image objects
+        """
+        endpoint = 'https://api.spotify.com/v1/playlists/{playlist_id}/images'.format(
+            playlist_id=playlist_id
+        )
+        response = (self.authorization, endpoint)
+        result = []
+        for res in response:
+            result.append(Image(res))
+        return result
+
+    @id_validation('playlist_id')
+    def get_playlist(self, playlist_id, market=None):
+        """
+        Endpoint: GET https://api.spotify.com/v1/playlists/{playlist_id}
+        :param playlist_id: The playlist's Spotify ID
+        :param market: Optional. ISO 3166-1 alpha-2 country code
+        :return: Paging object with Playlist Object
+        """
+        endpoint = 'https://api.spotify.com/v1/playlists/{playlist_id}'.format(
+            playlist_id=playlist_id
+        )
+        query = {}
+        if market:
+            query = {
+                'market': market
+            }
+        if query:
+            data = urllib.parse.urlencode(query)
+            endpoint = self.make_full_url(endpoint, data)
+        response = http_request(self.authorization, endpoint)
+        return Playlist(response, self.authorization)
+
+    @id_validation('playlist_id')
+    def get_playlist_tracks(self, playlist_id, limit=20, offset=1, market=None):
+        """
+        Endpoint: GET https://api.spotify.com/v1/playlists/{playlist_id}/tracks
+        :param playlist_id: The playlist's Spotify ID
+        :param limit: The maximum number of playlists to return. Default is 20. Maximum is 50. Minimum is 1.
+        :param offset: The index of the first playlist to return. Default is 0. Maximum is 10,000
+        :param market: Optional. ISO 3166-1 alpha-2 country code
+        :return: Paging object with PlaylistTrack object
+        """
+        endpoint = 'https://api.spotify.com/v1/playlists/{playlist_id}/tracks'.format(
+            playlist_id=playlist_id
+        )
+        queries = {
+            'limit': limit,
+            'offset': offset
+        }
+        if market:
+            queries['market'] = market
+        data = urllib.parse.urlencode(queries)
+        full_url = self.make_full_url(endpoint, data)
+        response = http_request(self.authorization, full_url)
+        return Paging(response, PlaylistTrack, self.authorization)
+
+    @id_validation('playlist_id')
+    def add_track_to_playlist(self, playlist_id, uris, position=None):
+        """
+        Endpoint: POST https://api.spotify.com/v1/playlists/{playlist_id}/tracks
+        :param playlist_id: The playlist's Spotify ID
+        :param uris: Optional. A list of the track's Spotify IDs or Spotify track URIs
+        :param position: Optional. The position to insert the tracks, a zero-based index.
+        :return:
+        """
+        endpoint = 'https://api.spotify.com/v1/playlists/{playlist_id}/tracks'.format(
+            playlist_id=playlist_id
+        )
+        if not uris:
+            raise QueryParameterNotAssignedError('uris does not assigned.')
+        if not isinstance(uris, list):
+            raise TypeError('uris must be list')
+        if not len(uris):
+            raise ValidationError("Length of uris need be more than 1.")
+        for each in uris:
+            if not isinstance(each, str):
+                raise ValidationError('URI must be str.')
+
+        uris = list(to_uri(uris, 'spotify:track:'))
+
+        queries = {
+            'uris': ','.join(uris)
+        }
+        if position:
+            queries['position'] = position
+        data = urllib.parse.urlencode(queries)
+        full_url = self.make_full_url(endpoint, data)
+        response = http_request(self.authorization, full_url, method='POST')
+        return response['snapshot_id']
